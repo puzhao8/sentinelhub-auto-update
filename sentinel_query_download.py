@@ -28,6 +28,8 @@ def is_jsonable(x):
 # cmd
 def sentinelsat_cmd_download(uuid, filename, path, user="puzhao", password="kth10044ESA!"):
     geojson_url = path / f"{filename}.geojson"
+    
+    print(f"\n{filename}")
     os.system(f"sentinelsat -u {user} -p {password}  --uuid {uuid} -d --path {path} \
         --footprints {geojson_url}")
 
