@@ -21,17 +21,19 @@ def load_json(url) -> edict:
 fileList = [
     # "S1A_IW_GRDH_1SDV_20210727T021138_20210727T021203_038957_0498BA_8C79",
     # "S1A_IW_GRDH_1SDV_20210727T021228_20210727T021253_038957_0498BA_6A4A",
-    "S1B_IW_GRDH_1SDV_20210730T014620_20210730T014645_028017_03579F_3D26"
+    "S1A_IW_GRDH_1SDV_20210729T015358_20210729T015423_038986_04998B_4FCC",
+    "S1A_IW_GRDH_1SDV_20210729T015423_20210729T015448_038986_04998B_E9FC",
+    "S1A_IW_GRDH_1SDV_20210729T015448_20210729T015513_038986_04998B_F2FA"
 ]
 
 
 eeUser = "omegazhangpzh"
 gs_dir = f"gs://sar4wildfire/Sentinel1"
-folder = "S1_GRD_2021-07-30T114227"
+folder = "S1_GRD_2021-07-30T094958"
 imgCol_name = os.path.split(gs_dir)[-1]
 
 import glob
-json_folder = Path("D:\Sentinel_Hub\outputs\S1_vSplit_BC_ROI1")
+json_folder = Path("D:/Sentinel_Hub/outputs/S1_split_BC")
 json_url = sorted(glob.glob(str(json_folder / f"{folder}.json")))[-1]
 print("\njson: " + os.path.split(json_url)[-1])
 
