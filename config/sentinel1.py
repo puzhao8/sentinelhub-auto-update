@@ -5,7 +5,7 @@ cfg = {
         # "start_date": None, # None for the day before today
         # "end_date": None, # None for the day after today
 
-        "roi_url": "inputs/S1_split_BC.geojson",
+        "roi_url": "inputs/S1_vSplit_BC_ROI1.geojson",
         "start_date": None, # None for the day before today
         "end_date": None, # None for the day after today
 
@@ -15,9 +15,10 @@ cfg = {
         # download parameters
         "download_flag": True,
         "datafolder": "D:/Sentinel_Hub", # where to save data
-        "user": 'puzhao', # ahui0911
-        "password": 'kth10044ESA!', # 19940911
 
+        "user": 'ahui0911', # ahui0911
+        "password": '19940911', # 19940911
+   
         # upload parameters
         "eeUser": "omegazhangpzh",
         "gs_dir": "gs://sar4wildfire/Sentinel1",

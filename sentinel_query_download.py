@@ -247,20 +247,6 @@ def download_sentinel_data(QueryInfo):
 
 if __name__ == "__main__":
 
-    # cfg = edict({
-    #     "roi_url": "inputs/BC_ROIs.geojson",
-
-    #     "platformname": "Sentinel-1", # Sentinel-2
-    #     "producttype": 'GRD', # S2MSI1C, S2MSI2A
-
-    #     "start_date": None,
-    #     "end_date": None,
-
-    #     "download_flag": False,
-    #     "datafolder": "D:/Sentinel_Hub", # where to save data
-    
-    # })
-
     from config.sentinel1 import cfg
     # from config.sentinel2 import cfg
     cfg = edict(cfg)

@@ -1,6 +1,6 @@
 
 
-from logging import exception
+from logging import exception, log
 import os, datetime, subprocess, time, json
 import glob
 from pathlib import Path
@@ -229,6 +229,8 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
     # cfg.update(query_info.cfg) 
     cfg = query_info.cfg
     workpath = Path(os.getcwd())
+    log_dir = workpath / "logs"
+    if not os.path.exists(log_dir): os.makedirs(log_dir)
 
     gs_dir = cfg.gs_dir
     eeUser = cfg.eeUser
@@ -264,7 +266,13 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
         upload as eeImgCol of GEE """
     # product wise processing and uploading, 
     # you don't need to wait for all data being downloaded.
-    TASK_DICT = {}
+
+    task_dict_url =  log_dir / "TASK_DICT.json"
+    if os.path.exists(task_dict_url): 
+        TASK_DICT = load_json(task_dict_url)
+    else:
+        TASK_DICT = {}
+
     fileListCopy = fileList.copy()
     while (len(fileListCopy) > 0):
         time.sleep(10)
@@ -272,39 +280,49 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
 
         for filename in fileList:            
             input_url = input_folder / f"{filename}.zip"
-            if (os.path.exists(input_url)) and (filename not in TASK_DICT.keys()):
 
-                print("\n\n\n")    
-                print(filename)
-                print("-------------------------------------------------------\n")
+            if filename in TASK_DICT.keys():
+                fileListCopy.remove(filename)
+                print(f"{filename} [uploaded & removed!]")
 
-                output_url = output_folder / f"{filename}.tif"
-
-                if not os.path.exists(str(output_url)):
-                    S1_GRD_Preprocessing(graph, input_url, output_url)
-
-                # convert into cloud-optimized geotiff
-                cog_url = cog_folder / f"{filename}.tif"
-                os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
-
-                # """ Upload COG into GCS """
-                os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
-
-                task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
-                TASK_DICT.update(task_dict)
-                
-                try:
-                    fileListCopy.remove(filename) # remove item from list after finishing uploading
-                    print(f"{filename}: [removed!]")
-                except:
-                    print(f"{filename}: [failed to remove!]")
-                
-                # pprint(TASK_DICT)
-                upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
-            
             else:
-                print(f"{filename} [not existed!]")
+                if (os.path.exists(input_url)):
 
+                    print("\n\n\n")    
+                    print(filename)
+                    print("-------------------------------------------------------\n")
+
+                    output_url = output_folder / f"{filename}.tif"
+
+                    if not os.path.exists(str(output_url)):
+                        S1_GRD_Preprocessing(graph, input_url, output_url)
+
+                    # convert into cloud-optimized geotiff
+                    cog_url = cog_folder / f"{filename}.tif"
+                    os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+
+                    # """ Upload COG into GCS """
+                    os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
+
+                    task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
+                    TASK_DICT.update(task_dict)
+                    
+                    try:
+                        fileListCopy.remove(filename) # remove item from list after finishing uploading
+                        print(f"{filename}: [removed!]")
+                    except:
+                        print(f"{filename}: [failed to remove!]")
+                        print(fileListCopy)
+                    
+                    # pprint(TASK_DICT)
+                    upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
+
+                else:
+                    print(f"{filename} [not existed!]")
+
+            # save TASK_DICT
+            with open(str(task_dict_url), 'w') as fp:
+                json.dump(edict(TASK_DICT), fp, ensure_ascii=False, indent=4)
 
 
     """ Set Image Property """
