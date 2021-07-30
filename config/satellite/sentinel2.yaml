@@ -1,0 +1,14 @@
+#@package _global_
+
+roi_url: inputs/S2_BC_small.geojson
+
+gs_dir: gs://sar4wildfire/Sentinel2
+graph_url: graphs/S1_GRD_preprocessing_GEE.xml
+
+platformname: Sentinel-2 # Sentinel-2
+producttype: 'S2MSI1C' # S2MSI1C S2MSI2A
+
+cloudcoverpercentage: 50 # 0-100
+
+user: 'puzhao' # ahui0911
+password: 'kth10044ESA!' # 19940911

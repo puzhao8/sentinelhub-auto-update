@@ -299,6 +299,7 @@ if __name__ == "__main__":
         download_viirs_on(julian_day, hh_list=['12', '13'], vv_list =['02', '03'])
         download_viirs_on(julian_day, hh_list=['12', '13'], vv_list =['04', '05'])
         download_viirs_on(julian_day, hh_list=['08', '09'], vv_list =['04', '05'])
+        # download_viirs_on(julian_day, hh_list=['09'], vv_list =['03'])
         
     fileList = viirs_preprocessing_and_upload(dataPath)
     pprint(fileList)

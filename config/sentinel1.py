@@ -6,8 +6,8 @@ cfg = {
         # "end_date": None, # None for the day after today
 
         "roi_url": "inputs/S1_vSplit_BC_ROI1.geojson",
-        "start_date": None, # None for the day before today
-        "end_date": None, # None for the day after today
+        "start_date": "2021-07-30", # None for the day before today
+        "end_date": "2021-07-31", # None for the day after today
 
         "platformname": "Sentinel-1", # Sentinel-2
         "producttype": 'GRD', # S2MSI1C, S2MSI2A

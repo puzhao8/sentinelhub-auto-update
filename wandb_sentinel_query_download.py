@@ -37,7 +37,6 @@ def query_sentinel_data(cfg, save_json=True):
     # workpath = Path(os.getcwd())
     workpath = Path(cfg.workpath)
 
-
     # api = SentinelAPI('puzhao', 'kth10044ESA!', 'https://scihub.copernicus.eu/dhus')
     user, password = "ahui0911", "19940911"
 
@@ -88,6 +87,7 @@ def query_sentinel_data(cfg, save_json=True):
     cfg.download_all = cfg.download_all and cfg.download_flag
     cfg.download_one = cfg.download_one and cfg.download_flag
 
+    workpath = Path(cfg.workpath)
             
     if cfg.query_by == "roi":
         footprint = geojson_to_wkt(read_geojson(str(workpath / cfg.roi_url)))
@@ -248,14 +248,29 @@ def download_sentinel_data(QueryInfo):
     #                 max_attempts=10, checksum=True, n_concurrent_dl=1, let_retry_delay=600)
 
 
-if __name__ == "__main__":
 
-    from config.sentinel1 import cfg
-    # from config.sentinel2 import cfg
+import hydra
+import wandb
+from omegaconf import DictConfig, OmegaConf
+
+@hydra.main(config_path="./config", config_name="main")
+def run_app(cfg : DictConfig) -> None:
+    print(OmegaConf.to_yaml(cfg))
+
+    wandb.init(config=cfg, project=cfg.project_name, name=cfg.exp_name)
+
     cfg = edict(cfg)
+    cfg['workpath'] = hydra.utils.get_original_cwd()
 
     query_info = query_sentinel_data(cfg)
     download_sentinel_data(query_info)
+
+
+if __name__ == "__main__":
+    run_app()
+
+
+    
 
     
 

@@ -1,5 +1,4 @@
-import os, time  
-from datetime import datetime                                                                     
+import os, time                                                                       
 from multiprocessing import Pool                                                
                                                                                                                                                                                                                                                                                              
 def run_process(process):   
@@ -10,12 +9,14 @@ def run_process(process):
                                                                                 
 if __name__ == "__main__":
     
+    config = "roi_url=inputs\S1_vSplit_BC_ROI1.geojson start_date=2021-07-29 end_date=2021-07-30"
+
     # independent processes
     processes = (
             # 'update_active_fire.py', 
             # 'update_viirs_nrt.py',
-            'sentinel_query_download.py',
-            'update_sentinel_for_gee.py'
+            f'wandb_sentinel_query_download.py {config}',
+            f'wandb_update_sentinel_for_gee.py {config}'
         )
 
     # dependent processes
@@ -23,15 +24,9 @@ if __name__ == "__main__":
 
     # run every 2 hours
     while(True):
-
-        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        hour = now.split("T")[1]
-
-        if('11:00:00' == hour):
-            print(f"===> updated on {now}")
         
         pool = Pool(processes=len(processes)+len(other)) 
         pool.map(run_process, processes)
         pool.map(run_process, other)
 
-        time.sleep(30*60)
+        time.sleep(10*60)
