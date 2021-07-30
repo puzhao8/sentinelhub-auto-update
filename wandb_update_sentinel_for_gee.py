@@ -283,8 +283,8 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
     while (len(fileListCopy) > 0):
         time.sleep(60)
         cnt = cnt + 1
-        print("\n----------------------------- while -------------------------------")  
-
+        # print("\n----------------------------- while -------------------------------")  
+        print(f"\n------------------- while {cnt}: {(end-start)/3600:.4f}h ---------------------") 
         for filename in fileList:            
             input_url = input_folder / f"{filename}.zip"
 

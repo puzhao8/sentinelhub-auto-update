@@ -4,8 +4,8 @@ project_name: sentinelhub-auto-update
 defaults:
 - satellite: sentinel1
 
-start_date: "2021-07-30" # None for the day before today
-end_date: "2021-07-31" # None for the day after today
+start_date: null # None for the day before today
+end_date: null # None for the day after today
 
 # download parameters
 download_flag: True
