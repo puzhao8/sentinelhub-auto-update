@@ -1,70 +1,75 @@
 
-import os
+import os, json
 import time
 from pathlib import Path
+from easydict import EasyDict as edict
+from prettyprinter import pprint
 
-# input_folder = Path("D:\Sentinel_Hub\data\S1_GRD")
-# fileList = [
-#             "S1A_IW_GRDH_1SDV_20210727T021109_20210727T021138_038957_0498BA_C633",
-#             "S1B_IW_GRDH_1SDV_20210726T141029_20210726T141058_027966_03562E_EA63",
-#             "S1B_IW_GRDH_1SDV_20210726T141058_20210726T141123_027966_03562E_2654",
-#             "S1B_IW_GRDH_1SDV_20210726T141123_20210726T141148_027966_03562E_F0A3",
-#             "S1B_IW_GRDH_1SDV_20210726T141148_20210726T141213_027966_03562E_A8B5",
-#             "S1B_IW_GRDH_1SDV_20210726T141213_20210726T141238_027966_03562E_8CCD",
-#             "S1B_IW_GRDH_1SDV_20210727T012057_20210727T012122_027973_035661_77CD",
-#             "S1B_IW_GRDH_1SDV_20210727T012122_20210727T012147_027973_035661_6C12",
-#             "S1B_IW_GRDH_1SDV_20210727T012147_20210727T012212_027973_035661_CAEF",
-#             "S1B_IW_GRDH_1SDV_20210727T012212_20210727T012237_027973_035661_5EE2",
-#             "S1B_IW_GRDH_1SDV_20210727T012237_20210727T012302_027973_035661_9E41",
-#             "S1B_IW_GRDH_1SDV_20210727T012302_20210727T012335_027973_035661_73F2"
-#         ]
+input_folder = Path("D:\Sentinel_Hub\data\S1_GRD")
+fileList = [
+            'S1B_IW_GRDH_1SDV_20210730T014710_20210730T014735_028017_03579F_DF69',
+            'S1B_IW_GRDH_1SDV_20210730T014620_20210730T014645_028017_03579F_3D26',
+            'S1B_IW_GRDH_1SDV_20210730T014735_20210730T014811_028017_03579F_7775'
+        ]
 
-# TASK_DICT = {}
-# fileListCopy = fileList.copy()
-# while (len(fileListCopy) > 0):
-#     time.sleep(10)
-#     print("\n----------------------------- while -------------------------------")  
+def load_json(url) -> edict:
+    with open(url, 'r') as fp:
+        data = edict(json.load(fp))
+    return data
 
-#     for filename in fileList:            
-#         input_url = input_folder / f"{filename}.zip"
-#         if (os.path.exists(input_url)) and (filename not in TASK_DICT.keys()):
+task_dict_url =  "G:\PyProjects\sentinelhub-auto-update\logs\TASK_DICT.json"
+if os.path.exists(task_dict_url): 
+    History_TASK_DICT = load_json(task_dict_url)
+    
+TASK_DICT = {}
+fileListCopy = fileList.copy()
 
-#             print("\n\n\n")    
-#             print(filename)
-#             print("-------------------------------------------------------")
+cnt = 0
+max_time = 30 # 3*60*60 in seconds
+start = time.time()
+end = time.time()
+while (len(fileListCopy) > 0):
+    print(f"\n------------------- while {cnt}: {(end-start)/3600:.4f}h ---------------------")  
 
-#             # output_url = output_folder / f"{filename}.tif"
+    for filename in fileList:            
+        input_url = input_folder / f"{filename}.zip"
 
-#             # if not os.path.exists(str(output_url)):
-#             #     S1_GRD_Preprocessing(graph, input_url, output_url)
+        # pprint(fileListCopy)
 
-#             # # convert into cloud-optimized geotiff
-#             # cog_url = cog_folder / f"{filename}.tif"
-#             # os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+        # print(filename)
+        # print(f"(filename in History_TASK_DICT.keys()): {(filename in History_TASK_DICT.keys())}")
+        # print(f"filename in fileListCopy: {filename in fileListCopy}")
+        # print(f"os.path.exists(input_url): {(os.path.exists(input_url))}")
 
-#             # # """ Upload COG into GCS """
-#             # os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
+        if (filename in History_TASK_DICT.keys()) and (filename in fileListCopy):
+            fileListCopy.remove(filename)
+            print(f"{filename} [uploaded already!]")
 
-#             # task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
-#             TASK_DICT.update({filename: filename})
-            
-#             try:
-#                 fileListCopy.remove(filename) # remove item from list after finishing uploading
-#                 print(f"{filename}: [removed!]")
-#             except:
-#                 print(f"{filename}: [failed to remove!]")
-            
-#             # pprint(TASK_DICT)
-#             # upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
-        
-#         else:
-#             print(f"{filename} [not existed!]")
+        if (filename not in History_TASK_DICT.keys()) and \
+            (os.path.exists(input_url)) and \
+                (filename in fileListCopy):
+
+            print(f"{filename}: [uploaded!]")
+            fileListCopy.remove(filename) # remove item from list after finishing uploading
+
+        if (filename not in History_TASK_DICT.keys()) and \
+            (not os.path.exists(input_url)):
+            print(f"{filename}: [not existed!]") 
+
+    time.sleep(10)
+
+    cnt = cnt + 1
+    end = time.time()
+    if end - start > max_time: break
+    # time.sleep(10)
+    
 
 
 
-dataPath = Path("D:\Sentinel_Hub\data\Tim")
-src_url = dataPath / "S2_L2A_20210728_Mosaic.tif"
-dst_url = dataPath / "S2_L2A_20210728_Mosaic_COG.tif"
-os.system(f"gdal_translate {src_url} {dst_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+
+# dataPath = Path("D:\Sentinel_Hub\data\Tim")
+# src_url = dataPath / "S2_L2A_20210728_Mosaic.tif"
+# dst_url = dataPath / "S2_L2A_20210728_Mosaic_COG.tif"
+# os.system(f"gdal_translate {src_url} {dst_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
 
 

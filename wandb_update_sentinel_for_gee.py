@@ -275,67 +275,71 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
     
     TASK_DICT = {}
     fileListCopy = fileList.copy()
+
+    cnt = 0
+    max_time = 4*60*60 #in seconds
+    start = time.time()
+    end = time.time()
     while (len(fileListCopy) > 0):
-        time.sleep(10)
+        time.sleep(60)
+        cnt = cnt + 1
         print("\n----------------------------- while -------------------------------")  
 
         for filename in fileList:            
             input_url = input_folder / f"{filename}.zip"
 
-            print("***********************************************")
-            pprint(fileListCopy)
-            print("***********************************************")
-
-            if filename in History_TASK_DICT.keys():
+            if (filename in History_TASK_DICT.keys()) and (filename in fileListCopy):
                 fileListCopy.remove(filename)
-                print(f"{filename} [uploaded & removed!]")
+                print(f"{filename} [uploaded already!]")
 
-            else:
-                if (os.path.exists(input_url)):
+            if (filename not in History_TASK_DICT.keys()) and \
+                (os.path.exists(input_url)) and \
+                    (filename in fileListCopy):
 
-                    print("\n\n\n")    
-                    print(filename)
-                    print("-------------------------------------------------------\n")
+                ########################################################
+                output_url = output_folder / f"{filename}.tif"
+                if not os.path.exists(str(output_url)):
+                    S1_GRD_Preprocessing(graph, input_url, output_url)
 
-                    output_url = output_folder / f"{filename}.tif"
+                # convert into cloud-optimized geotiff
+                cog_url = cog_folder / f"{filename}.tif"
+                os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
 
-                    if not os.path.exists(str(output_url)):
-                        S1_GRD_Preprocessing(graph, input_url, output_url)
+                # """ Upload COG into GCS """
+                os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
 
-                    # convert into cloud-optimized geotiff
-                    cog_url = cog_folder / f"{filename}.tif"
-                    os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+                task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
+                TASK_DICT.update(task_dict)
+                        
+                upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
+                ########################################################
 
-                    # """ Upload COG into GCS """
-                    os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
+                print(f"{filename}: [uploaded!]")
+                fileListCopy.remove(filename) # remove item from list after finishing uploading
 
-                    task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
-                    TASK_DICT.update(task_dict)
-                    
-                    try:
-                        fileListCopy.remove(filename) # remove item from list after finishing uploading
-                        print(f"{filename}: [removed!]")
-                    except:
-                        print(f"{filename}: [failed to remove!]")
-                        print(fileListCopy)
-                    
-                    # pprint(TASK_DICT)
-                    upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
+            if (filename not in History_TASK_DICT.keys()) and \
+                (not os.path.exists(input_url)):
+                print(f"{filename}: [not existed!]") 
 
-                else:
-                    print(f"{filename} [not existed!]")
+        # save TASK_DICT
+        with open(str(task_dict_url), 'w') as fp:
+            json.dump(edict(TASK_DICT), fp, ensure_ascii=False, indent=4)
 
-            # save TASK_DICT
-            with open(str(task_dict_url), 'w') as fp:
-                json.dump(edict(TASK_DICT), fp, ensure_ascii=False, indent=4)
+        end = time.time()
+        if end - start > max_time: break
 
-
+                        
     """ Set Image Property """
     fileList = list(TASK_DICT.keys())
     fileListCopy = fileList.copy()
     imgCol_name = os.path.split(gs_dir)[-1]
+
+
+    max_time = 1*60*60 # in seconds
+    start = time.time()
+    end = time.time()
     while(len(fileListCopy) > 0):
-        # time.sleep(10) # wait?
+        time.sleep(10*60) # wait?
         response = subprocess.getstatusoutput(f"earthengine ls users/{eeUser}/{imgCol_name}")
         asset_list = response[1].replace("projects/earthengine-legacy/assets/", "").split("\n")
 
@@ -344,16 +348,18 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
 
             if asset_id in asset_list:
                 set_image_property(asset_id, query_info)
-                try:
+                if filename in fileListCopy:
                     fileListCopy.remove(filename) # remove item from list after finishing uploading
                     print(f"{filename}: [removed!]")
-                except:
-                    print(f"{filename}: [failed to remove!]")
+
             else:
-                print(f"{asset_id} [Not Ready in GEE!]")
+                print(f"{filename} [Not Ready in GEE!]")
+
+        end = time.time()
+        if end - start > max_time: break
 
 
-  
+"""" main """  
 import hydra
 import wandb
 from omegaconf import DictConfig, OmegaConf
