@@ -285,12 +285,17 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
         cnt = cnt + 1
         # print("\n----------------------------- while -------------------------------")  
         print(f"\n------------------- while {cnt}: {(end-start)/3600:.4f}h ---------------------") 
+
         for filename in fileList:            
             input_url = input_folder / f"{filename}.zip"
 
             if (filename in History_TASK_DICT.keys()) and (filename in fileListCopy):
                 fileListCopy.remove(filename)
                 print(f"{filename} [uploaded already!]")
+
+            if (filename not in History_TASK_DICT.keys()) and \
+                (not os.path.exists(input_url)):
+                print(f"{filename}: [not existed!]") 
 
             if (filename not in History_TASK_DICT.keys()) and \
                 (os.path.exists(input_url)) and \
@@ -301,29 +306,27 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
                 if not os.path.exists(str(output_url)):
                     S1_GRD_Preprocessing(graph, input_url, output_url)
 
-                # convert into cloud-optimized geotiff
-                cog_url = cog_folder / f"{filename}.tif"
-                os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+                    # convert into cloud-optimized geotiff
+                    cog_url = cog_folder / f"{filename}.tif"
+                    os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
 
-                # """ Upload COG into GCS """
-                os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
+                    # """ Upload COG into GCS """
+                    os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
 
-                task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
-                TASK_DICT.update(task_dict)
-                        
-                upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
-                ########################################################
+                    task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
+                    TASK_DICT.update(task_dict)
 
-                print(f"{filename}: [uploaded!]")
-                fileListCopy.remove(filename) # remove item from list after finishing uploading
+                    History_TASK_DICT.update(task_dict)
+                            
+                    upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
+                    ########################################################
 
-            if (filename not in History_TASK_DICT.keys()) and \
-                (not os.path.exists(input_url)):
-                print(f"{filename}: [not existed!]") 
+                    print(f"{filename}: [uploaded!]")
+                    fileListCopy.remove(filename) # remove item from list after finishing uploading
 
         # save TASK_DICT
         with open(str(task_dict_url), 'w') as fp:
-            json.dump(edict(TASK_DICT), fp, ensure_ascii=False, indent=4)
+            json.dump(edict(History_TASK_DICT), fp, ensure_ascii=False, indent=4)
 
         end = time.time()
         if end - start > max_time: break
@@ -370,7 +373,7 @@ def run_app(cfg : DictConfig) -> None:
 
     wandb.init(config=cfg, project=cfg.project_name, name=cfg.exp_name)
 
-    from sentinel_query_download import query_sentinel_data, download_sentinel_data
+    from wandb_sentinel_query_download import query_sentinel_data, download_sentinel_data
 
     cfg = edict(cfg)
     cfg['workpath'] = hydra.utils.get_original_cwd()

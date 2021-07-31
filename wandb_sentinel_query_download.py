@@ -154,7 +154,7 @@ def query_sentinel_data(cfg, save_json=True):
     for product_id in products_dict.keys():
         title = products_dict[product_id]['title']
         filtered_size = ee.Number(checkImgCol.filter(ee.Filter.eq(cfg.checkProperty, title)).size())\
-                    .add(sentinel_asset.filter(ee.Filter.eq(cfg.checkProperty, title)).size()).getInfo()
+                    .add(sentinel_asset.filter(ee.Filter.eq("system:index", title)).size()).getInfo()
         flag = filtered_size > 0 
         print(title, flag)
 

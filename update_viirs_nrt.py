@@ -294,7 +294,7 @@ if __name__ == "__main__":
     julian_today = lance_date.days
     print(f"julian_today: {julian_today}")
 
-    for julian_day in range(julian_today-5, julian_today):
+    for julian_day in range(julian_today, julian_today+1):
         download_viirs_on(julian_day, hh_list=['10', '11'], vv_list =['02', '03', '04', '05'])
         download_viirs_on(julian_day, hh_list=['12', '13'], vv_list =['02', '03'])
         download_viirs_on(julian_day, hh_list=['12', '13'], vv_list =['04', '05'])
