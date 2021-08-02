@@ -1,4 +1,6 @@
 "# sentinelhub-auto-query" 
+This project is used to reduce the delay of VIIRS, Sentinel-1, and Sentinel-2 updating in Google Earth Engine (GEE), by downloading data from ESA Open Access Hub (https://scihub.copernicus.eu/dhus/#/home), processing locally, and uploading them as ee.ImageCollection asset in GEE.
+
 
 # Config Environment
 ## 1. Install anaconda
@@ -61,6 +63,7 @@ You could also create your own ROI in geojson in https://geojson.io/, save it in
 
 check data updating status in our wildfire minitor app:
 https://omegazhangpzh.users.earthengine.app/view/wildfire-monitor-v5
+https://omegazhangpzh.users.earthengine.app/view/wildfire-monitor-v6-eu
 
 
 
