@@ -36,15 +36,21 @@ gcloud config set project [project-name]
 ``` bash 
 conda activate snap
 cd path/to/project
-python main_run_multi_scripts.py 
+```
+``` bash
+python wandb_main_run_multi_scripts.py 
 ```
 
-This command line will run sentinel_query_download.py and update_sentinel_for_gee.py at the same time, and you need to choose the satellite data you would like to download and process by commenting the other in both scripts.
+This command line will run sentinel_query_download.py and update_sentinel_for_gee.py at the same time, and you can change the variable config in wandb_main_run_multi_scripts.py:
+
+For Sentinel-1, the default start_date is the day before today, and end_date is the day after today.
 ``` python
-from config.sentinel1 import cfg
-from config.sentinel2 import cfg
+config = "roi_url=inputs/S1_split_US.geojson satellite=sentinel1"
 ```
-In the config folder, you can set parameters.
+For Sentinel-2, you can change it into 
+``` python
+config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2"
+```
 
 
 
