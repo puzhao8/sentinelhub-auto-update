@@ -52,6 +52,13 @@ For Sentinel-2, you can change it into
 config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2"
 ```
 
+You could also specify start_date and end_date like the follows
+``` python
+config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2 start_date=2021-08-01 end_date=2021-08-02"
+```
+
+You could also create your own ROI in geojson in https://geojson.io/, save it into inputs folder.
+
 
 
 ## Other (no need to follow)
