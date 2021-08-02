@@ -156,7 +156,7 @@ def query_sentinel_data(cfg, save_json=True):
         filtered_size = ee.Number(checkImgCol.filter(ee.Filter.eq(cfg.checkProperty, title)).size())\
                     .add(sentinel_asset.filter(ee.Filter.eq("system:index", title)).size()).getInfo()
         flag = filtered_size > 0 
-        print(title, flag)
+        print(title, flag, filtered_size)
 
         # flag = False
         if not flag: # if this product is not available in GEE

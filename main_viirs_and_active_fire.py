@@ -1,5 +1,6 @@
 import os, time                                                                       
-from multiprocessing import Pool                                                
+from multiprocessing import Pool 
+from datetime import datetime                                               
                                                                                                                                                                                                                                                                                              
 def run_process(process):   
     if 'virrs' in process: 
@@ -20,9 +21,21 @@ if __name__ == "__main__":
     # dependent processes
     other = ()
 
+    # pool = Pool(processes=len(processes)+len(other)) 
+    # pool.map(run_process, processes)
+    # pool.map(run_process, other)
+
     # run every 6 hours
     while(True):
 
-        pool = Pool(processes=len(processes)+len(other)) 
-        pool.map(run_process, processes)
-        pool.map(run_process, other)
+        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        hour = now.split("T")[1]
+
+        if('08:00:00' == hour):
+            print(f"===> updated on {now}")
+            os.system('python update_active_fire.py')
+
+        if('11:00:00' == hour): 
+            print(f"===> updated on {now}")
+            os.system('python update_viirs_nrt.py') 
+        

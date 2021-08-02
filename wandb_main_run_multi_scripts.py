@@ -9,10 +9,14 @@ def run_process(process):
                                                                                 
 if __name__ == "__main__":
     
+    """ S1 """
     # config = "roi_url=inputs\S1_vSplit_BC_ROI1.geojson satellite=sentinel1 start_date=2021-07-30 end_date=2021-07-31"
-    config = "roi_url=inputs\S1_vSplit_BC_ROI2.geojson satellite=sentinel1"
+    config = "roi_url=inputs\S1_vSplit_BC_ROI1.geojson satellite=sentinel1"
 
     # config = "roi_url=inputs\S1_vSplit_BC_ROI2.geojson start_date=2021-07-30 end_date=2021-07-31"
+
+    """ S2 """
+    # config = "roi_url=inputs/S2_East_CA.geojson satellite=sentinel2"
 
     # independent processes
     processes = (

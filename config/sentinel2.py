@@ -4,7 +4,7 @@ cfg = {
 
         "platformname": "Sentinel-2", # Sentinel-2
         "producttype": 'S2MSI1C', # S2MSI1C, S2MSI2A
-        "cloudcoverpercentage": 50, # 0-100
+        "cloudcoverpercentage": 100, # 0-100
 
         "start_date": None, #"2021-07-20",
         "end_date": None, #"2021-07-22",

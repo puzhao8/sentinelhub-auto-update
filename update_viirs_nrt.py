@@ -217,7 +217,6 @@ def download_viirs_on(julian_day, hh_list=['10', '11'], vv_list =['03']):
 
 def viirs_preprocessing_and_upload(dataPath):
     # CRS optimization and cloud optimization
-    import shutil
 
     if os.path.exists(dataPath / "COG"): 
         shutil.rmtree(dataPath / 'COG')
@@ -286,6 +285,8 @@ if __name__ == "__main__":
 
     workspace = Path("D:/Sentinel_Hub")
     dataPath = workspace / 'data' / eeImgColName
+    if os.path.exists(dataPath): shutil.rmtree(f"{str(dataPath)}/")
+
     gs_dir = f"gs://sar4wildfire/{eeImgColName}"
     VIIRS_NRT_ImgCol = f"users/omegazhangpzh/{eeImgColName}"
 
@@ -295,12 +296,16 @@ if __name__ == "__main__":
     print(f"julian_today: {julian_today}")
 
     for julian_day in range(julian_today, julian_today+1):
+        # North America
         download_viirs_on(julian_day, hh_list=['10', '11'], vv_list =['02', '03', '04', '05'])
         download_viirs_on(julian_day, hh_list=['12', '13'], vv_list =['02', '03'])
         download_viirs_on(julian_day, hh_list=['12', '13'], vv_list =['04', '05'])
         download_viirs_on(julian_day, hh_list=['08', '09'], vv_list =['04', '05'])
         download_viirs_on(julian_day, hh_list=['09'], vv_list =['03']) # low-res, why?
-        
+    
+        # Europe 
+        download_viirs_on(julian_day, hh_list=['17', '18', '19', '20', '21'], vv_list =['02', '03', '04', '05', '06'])
+
     fileList = viirs_preprocessing_and_upload(dataPath)
     pprint(fileList)
     
