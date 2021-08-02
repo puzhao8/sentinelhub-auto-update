@@ -49,7 +49,7 @@ config = "roi_url=inputs/S1_split_US.geojson satellite=sentinel1"
 ```
 For Sentinel-2, you can change it into 
 ``` python
-config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2"
+config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2 cloudcoverpercentage=100"
 ```
 
 You could also specify start_date and end_date like the follows
@@ -58,6 +58,10 @@ config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2 start_
 ```
 
 You could also create your own ROI in geojson in https://geojson.io/, save it into inputs folder.
+
+check data updating status in our wildfire minitor app:
+https://omegazhangpzh.users.earthengine.app/view/wildfire-monitor-v5
+
 
 
 
