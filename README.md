@@ -1,4 +1,6 @@
 "# sentinelhub-auto-query" 
+This project is used to reduce the delay of VIIRS, Sentinel-1, and Sentinel-2 updating in Google Earth Engine (GEE), by downloading data from ESA Open Access Hub (https://scihub.copernicus.eu/dhus/#/home), processing locally, and uploading them as ee.ImageCollection asset in GEE.
+
 
 # Config Environment
 ## 1. Install anaconda
@@ -36,15 +38,33 @@ gcloud config set project [project-name]
 ``` bash 
 conda activate snap
 cd path/to/project
-python main_run_multi_scripts.py 
+```
+``` bash
+python wandb_main_run_multi_scripts.py 
 ```
 
-This command line will run sentinel_query_download.py and update_sentinel_for_gee.py at the same time, and you need to choose the satellite data you would like to download and process by commenting the other in both scripts.
+This command line will run sentinel_query_download.py and update_sentinel_for_gee.py at the same time, and you can change the variable config in wandb_main_run_multi_scripts.py:
+
+For Sentinel-1, the default start_date is the day before today, and end_date is the day after today.
 ``` python
-from config.sentinel1 import cfg
-from config.sentinel2 import cfg
+config = "roi_url=inputs/S1_split_US.geojson satellite=sentinel1"
 ```
-In the config folder, you can set parameters.
+For Sentinel-2, you can change it into 
+``` python
+config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2 cloudcoverpercentage=100"
+```
+
+You could also specify start_date and end_date like the follows
+``` python
+config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2 start_date=2021-08-01 end_date=2021-08-02"
+```
+
+You could also create your own ROI in geojson in https://geojson.io/, save it into inputs folder.
+
+check data updating status in our wildfire minitor app:
+https://omegazhangpzh.users.earthengine.app/view/wildfire-monitor-v5
+https://omegazhangpzh.users.earthengine.app/view/wildfire-monitor-v6-eu
+
 
 
 
