@@ -8,7 +8,7 @@ graph_url: graphs/S2_resamping_graph.xml
 platformname: Sentinel-2 # Sentinel-2
 producttype: 'S2MSI1C' # S2MSI1C S2MSI2A
 
-cloudcoverpercentage: 50 # 0-100
+cloudcoverpercentage: 100 # 0-100
 
 user: 'puzhao' # ahui0911
 password: 'kth10044ESA!' # 19940911

@@ -17,20 +17,23 @@ def load_json(url) -> edict:
         data = edict(json.load(fp))
     return data
 
-task_dict_url =  "G:\PyProjects\sentinelhub-auto-update\logs\TASK_DICT.json"
+task_dict_url =  "G:\PyProjects\sentinelhub-auto-update\logs\TASK_DICT_TEST.json"
 if os.path.exists(task_dict_url): 
     History_TASK_DICT = load_json(task_dict_url)
+else:
+    History_TASK_DICT = {}
     
 TASK_DICT = {}
 fileListCopy = fileList.copy()
 
 cnt = 0
-max_time = 30 # 3*60*60 in seconds
+max_time = 100 # 3*60*60 in seconds
 start = time.time()
 end = time.time()
 while (len(fileListCopy) > 0):
     print(f"\n------------------- while {cnt}: {(end-start)/3600:.4f}h ---------------------")  
 
+    fileList = fileListCopy.copy()
     for filename in fileList:            
         input_url = input_folder / f"{filename}.zip"
 
@@ -51,6 +54,11 @@ while (len(fileListCopy) > 0):
 
             print(f"{filename}: [uploaded!]")
             fileListCopy.remove(filename) # remove item from list after finishing uploading
+
+            History_TASK_DICT.update({filename: filename})
+            # save TASK_DICT
+            with open(str(task_dict_url), 'w') as fp:
+                json.dump(edict(History_TASK_DICT), fp, ensure_ascii=False, indent=4)
 
         if (filename not in History_TASK_DICT.keys()) and \
             (not os.path.exists(input_url)):

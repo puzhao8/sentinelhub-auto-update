@@ -287,6 +287,9 @@ if __name__ == "__main__":
     dataPath = workspace / 'data' / eeImgColName
     if os.path.exists(dataPath): shutil.rmtree(f"{str(dataPath)}/")
 
+    tmpPath = dataPath / "5000/VNP09GA_NRT/2021/"
+    if not os.path.exists(tmpPath): os.makedirs(tmpPath)
+
     gs_dir = f"gs://sar4wildfire/{eeImgColName}"
     VIIRS_NRT_ImgCol = f"users/omegazhangpzh/{eeImgColName}"
 

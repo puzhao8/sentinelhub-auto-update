@@ -272,6 +272,8 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
     task_dict_url =  log_dir / "TASK_DICT.json"
     if os.path.exists(task_dict_url): 
         History_TASK_DICT = load_json(task_dict_url)
+    else:
+        History_TASK_DICT = {}
     
     TASK_DICT = {}
     fileListCopy = fileList.copy()
@@ -286,6 +288,7 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
         # print("\n----------------------------- while -------------------------------")  
         print(f"\n------------------- while {cnt}: {(end-start)/3600:.4f}h ---------------------") 
 
+        fileList = fileListCopy.copy() # added on Aug-04
         for filename in fileList:            
             input_url = input_folder / f"{filename}.zip"
 
