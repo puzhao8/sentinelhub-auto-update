@@ -5,7 +5,6 @@
 # hHHvVV GRID: https://modis-land.gsfc.nasa.gov/MODLAND_grid.html
 
 import os
-import datetime
 import datetime as dt
 from genericpath import isfile
 from glob import glob
