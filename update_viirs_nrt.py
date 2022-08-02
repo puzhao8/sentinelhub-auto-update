@@ -196,15 +196,15 @@ def crs_cloud_optimization(url):
 
 
 
-def download_viirs_on(julian_day, hh_list=['10', '11'], vv_list =['03']):
+def download_viirs_on(julian_day, year, hh_list=['10', '11'], vv_list =['03']):
     for hh in hh_list:
         for vv in vv_list:
             print(f"\njulian_day: {julian_day}， h{hh}v{vv}")
             print("-----------------------------------------------------------")
 
-            url_part = f"5000/VNP09GA_NRT/2021/{julian_day}/VNP09GA_NRT.A2021{julian_day}.h{hh}v{vv}.001.h5"
+            url_part = f"5000/VNP09GA_NRT/"+str(year)+f"/{julian_day}/VNP09GA_NRT.A"+str(year)+f"{julian_day}.h{hh}v{vv}.001.h5"
             command = "c:/wget/wget.exe -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=5 " + \
-                f"\"https://nrt4.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/\"{url_part} \
+                f"\"https://nrt4.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/{url_part}\" \
                     --header \"Authorization: Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYyNjQ0MTQyMTphMzhkYTcwMzc5NTg1M2NhY2QzYjY2NTU0ZWFkNzFjMGEwMTljMmJj\" \
                     -P {dataPath}"
 
@@ -224,7 +224,7 @@ def viirs_preprocessing_and_upload(dataPath):
         os.makedirs(dataPath / 'COG')
     
 
-    inDir = dataPath / "5000" / "VNP09GA_NRT" / "2021"
+    inDir = dataPath / "5000" / "VNP09GA_NRT" / "2022"
     print(inDir)
 
     julianDay_list = [folder for folder in os.listdir(str(inDir)) if folder != ".DS_Store"]
@@ -281,29 +281,34 @@ if __name__ == "__main__":
 
     # workspace = Path(os.getcwd())
     eeImgColName = "VIIRS_NRT"
-
-    workspace = Path("D:/Sentinel_Hub")
+    year=2022
+    workspace = Path("D:/Sentinel_hub")
     dataPath = workspace / 'data' / eeImgColName
     if os.path.exists(dataPath): shutil.rmtree(f"{str(dataPath)}/")
 
-    gs_dir = f"gs://sar4wildfire/{eeImgColName}"
-    VIIRS_NRT_ImgCol = f"users/omegazhangpzh/{eeImgColName}"
+    tmpPath = dataPath / "5000/VNP09GA_NRT" / str(year)
+    if not os.path.exists(tmpPath): os.makedirs(tmpPath)
+
+    gs_dir = f"gs://ai4wildfire/{eeImgColName}"
+    VIIRS_NRT_ImgCol = f"users/eo4wildfire/{eeImgColName}"
 
     # Download from Lance
-    lance_date = datetime.date.today() - datetime.date(2021, 1, 1)
+    lance_date = datetime.date.today() - datetime.date(year, 1, 1)
     julian_today = lance_date.days
     print(f"julian_today: {julian_today}")
 
     for julian_day in range(julian_today, julian_today+1):
         # North America
-        download_viirs_on(julian_day, hh_list=['10', '11'], vv_list =['02', '03', '04', '05'])
-        download_viirs_on(julian_day, hh_list=['12', '13'], vv_list =['02', '03'])
-        download_viirs_on(julian_day, hh_list=['12', '13'], vv_list =['04', '05'])
-        download_viirs_on(julian_day, hh_list=['08', '09'], vv_list =['04', '05'])
-        download_viirs_on(julian_day, hh_list=['09'], vv_list =['03']) # low-res, why?
+        if not os.path.exists(tmpPath / str(julian_day)):
+            os.mkdir(tmpPath / str(julian_day))
+        download_viirs_on(julian_day, year, hh_list=['10', '11'], vv_list =['02', '03', '04', '05'])
+        download_viirs_on(julian_day, year, hh_list=['12', '13'], vv_list =['02', '03'])
+        download_viirs_on(julian_day, year, hh_list=['12', '13'], vv_list =['04', '05'])
+        download_viirs_on(julian_day, year, hh_list=['08', '09'], vv_list =['04', '05'])
+        download_viirs_on(julian_day, year, hh_list=['09'], vv_list =['03']) # low-res, why?
     
         # Europe 
-        download_viirs_on(julian_day, hh_list=['17', '18', '19', '20', '21'], vv_list =['02', '03', '04', '05', '06'])
+        download_viirs_on(julian_day, year, hh_list=['17', '18', '19', '20', '21'], vv_list =['02', '03', '04', '05', '06'])
 
     fileList = viirs_preprocessing_and_upload(dataPath)
     pprint(fileList)
@@ -330,7 +335,7 @@ if __name__ == "__main__":
         for filename in fileList:
             asset_id = f"{VIIRS_NRT_ImgCol}/{filename}"  # VNP09GA_NRT_A2021198_h10v03_001
             julian_day = eval(filename.split("_")[2][5:])
-            standard_date = datetime(2021, 1, 1) + timedelta(days=julian_day)
+            standard_date = datetime(year, 1, 1) + timedelta(days=julian_day)
             standard_date = standard_date.strftime("%Y-%m-%d")
 
             if asset_id in asset_list:
