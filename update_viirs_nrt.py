@@ -5,7 +5,6 @@
 # hHHvVV GRID: https://modis-land.gsfc.nasa.gov/MODLAND_grid.html
 
 import os
-import datetime
 import datetime as dt
 from genericpath import isfile
 from glob import glob
@@ -317,7 +316,7 @@ if __name__ == "__main__":
     #         # Europe
     #         download_viirs_on(julian_day, year, hh_list=hh_list_eu, vv_list =vv_list_eu)
     date = '2022-07-01'
-    date_ndays = (datetime.datetime.strptime(date, '%Y-%m-%d') - datetime.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
+    date_ndays = (dt.datetime.strptime(date, '%Y-%m-%d') - dt.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
     julian_today=date_ndays
     print(f"julian_today: {julian_today}")
     laads_client = LaadsClient()

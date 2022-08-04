@@ -53,8 +53,8 @@ def upadte_active_fire(period_list = ['24h', '7d']):
     
     firms = [
         "/data/active_fire/modis-c6.1/shapes/zips/MODIS_C6_1_Global_24h.zip",
-        "/data/active_fire/suomi-npp-viirs-c2/shapes/zips/SUOMI_VIIRS_C2_Global_24h.zip",
-        "/data/active_fire/noaa-20-viirs-c2/shapes/zips/J1_VIIRS_C2_Global_24h.zip"
+        # "/data/active_fire/suomi-npp-viirs-c2/shapes/zips/SUOMI_VIIRS_C2_Global_24h.zip",
+        # "/data/active_fire/noaa-20-viirs-c2/shapes/zips/J1_VIIRS_C2_Global_24h.zip"
     ]
 
     NRT_AF = subprocess.getstatusoutput("earthengine ls users/omegazhangpzh/NRT_AF/")
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     
         # if (int(time_split[0]) % 3 == 0) and (int(time_split[1])==0) and (int(time_split[2])==0):
             
-    upadte_active_fire(period_list=['24h', '7d', '48h']) #  
+    upadte_active_fire(period_list=['24h']) #  , '7d', '48h'
 
     AF_SUOMI_VIIRS = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/SUOMI_VIIRS_C2_Global_24h")
     AF = AF_SUOMI_VIIRS.map(set_AF_date)
