@@ -1,4 +1,6 @@
-
+.idea
+data
+venv
 outputs/*
 outputs
 data/*
