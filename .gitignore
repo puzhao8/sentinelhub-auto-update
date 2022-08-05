@@ -4,3 +4,4 @@ outputs
 data/*
 .DS_Store/*
 nasa-viirs/*
+*.log

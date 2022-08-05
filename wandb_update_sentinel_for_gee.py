@@ -309,23 +309,23 @@ def sentinel_preprocessing_and_upload(cfg, query_info):
                 if not os.path.exists(str(output_url)):
                     S1_GRD_Preprocessing(graph, input_url, output_url)
 
-                    # convert into cloud-optimized geotiff
-                    cog_url = cog_folder / f"{filename}.tif"
-                    os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+                # convert into cloud-optimized geotiff
+                cog_url = cog_folder / f"{filename}.tif"
+                os.system(f"gdal_translate {output_url} {cog_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
 
-                    # """ Upload COG into GCS """
-                    os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
+                # """ Upload COG into GCS """
+                os.system(f"gsutil -m cp -r {cog_url} {gs_dir}/")
 
-                    task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
-                    TASK_DICT.update(task_dict)
+                task_dict = upload_cog_into_eeImgCol(output_folder, gs_dir, fileList=[filename], upload_flag=True, eeUser=eeUser)
+                TASK_DICT.update(task_dict)
 
-                    History_TASK_DICT.update(task_dict)
-                            
-                    upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
-                    ########################################################
+                History_TASK_DICT.update(task_dict)
+                        
+                upload_finish_flag = check_status_and_set_property(TASK_DICT, query_info)
+                ########################################################
 
-                    print(f"{filename}: [uploaded!]")
-                    fileListCopy.remove(filename) # remove item from list after finishing uploading
+                print(f"{filename}: [uploaded!]")
+                fileListCopy.remove(filename) # remove item from list after finishing uploading
 
         # save TASK_DICT
         with open(str(task_dict_url), 'w') as fp:

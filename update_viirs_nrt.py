@@ -3,7 +3,9 @@
 # viirs ftp: https://e4ftl01.cr.usgs.gov/VIIRS/VNP09GA.001/2021.07.05/
 # https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/VNP09GA/
 # hHHvVV GRID: https://modis-land.gsfc.nasa.gov/MODLAND_grid.html
+# DoY (Day of Year): https://asd.gsfc.nasa.gov/Craig.Markwardt/doy2021.html
 
+from itertools import product
 import os
 import datetime
 import datetime as dt
@@ -21,6 +23,8 @@ ee.Initialize()
 import h5py
 import numpy as np
 from osgeo import gdal, gdal_array
+
+PRODUCT = "VNP09GA_NRT"
 
 def get_geoInfo_and_projection(f):
     
@@ -203,7 +207,7 @@ def download_viirs_on(julian_day, hh_list=['10', '11'], vv_list =['03']):
             print(f"\njulian_day: {julian_day}， h{hh}v{vv}")
             print("-----------------------------------------------------------")
 
-            url_part = f"5000/VNP09GA_NRT/2021/{julian_day}/VNP09GA_NRT.A2021{julian_day}.h{hh}v{vv}.001.h5"
+            url_part = f"5000/{PRODUCT}/2021/{julian_day}/{PRODUCT}.A2021{julian_day}.h{hh}v{vv}.001.h5"
             command = "c:/wget/wget.exe -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=5 " + \
                 f"\"https://nrt4.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/\"{url_part} \
                     --header \"Authorization: Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYyNjQ0MTQyMTphMzhkYTcwMzc5NTg1M2NhY2QzYjY2NTU0ZWFkNzFjMGEwMTljMmJj\" \
@@ -225,7 +229,7 @@ def viirs_preprocessing_and_upload(dataPath):
         os.makedirs(dataPath / 'COG')
     
 
-    inDir = dataPath / "5000" / "VNP09GA_NRT" / "2021"
+    inDir = dataPath / "5000" / PRODUCT / "2021"
     print(inDir)
 
     julianDay_list = [folder for folder in os.listdir(str(inDir)) if folder != ".DS_Store"]
@@ -287,7 +291,7 @@ if __name__ == "__main__":
     dataPath = workspace / 'data' / eeImgColName
     if os.path.exists(dataPath): shutil.rmtree(f"{str(dataPath)}/")
 
-    tmpPath = dataPath / "5000/VNP09GA_NRT/2021/"
+    tmpPath = dataPath / f"5000/{PRODUCT}/2021/"
     if not os.path.exists(tmpPath): os.makedirs(tmpPath)
 
     gs_dir = f"gs://sar4wildfire/{eeImgColName}"
