@@ -259,7 +259,7 @@ def convert_MODIS_hdf_to_geotiff(inDir, outDir, SOURCE):
                         ).squeeze()
 
         outDir.mkdir(exist_ok=True)
-        modis_bands.rio.to_raster(outDir / f"{filename}.tif")
+        modis_bands.rio.reproject("EPSG:4326").rio.to_raster(outDir / f"{filename}.tif")
 
 
 def viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE):
@@ -367,7 +367,7 @@ if __name__ == "__main__":
     BANDS=SOURCE.BANDS
 
     # Configuration 
-    date = '2022-08-02'
+    date = '2022-08-03'
     year = 2022
     
     # local path
@@ -422,45 +422,67 @@ if __name__ == "__main__":
     #     "VNP09GA_NRT_A2021200_h11v03_001",
     # ]
 
-    fileList = [file for file in os.listdir(dataPath / "COG_rprj") if file[-4:] == ".tif"]
 
-    """ set property """
+    ''' xxx '''
     import time, subprocess
     from datetime import datetime, timedelta
+    response = subprocess.getstatusoutput(f"earthengine ls users/{USER}/{eeImgColName}")
+    asset_list = response[1].replace("projects/earthengine-legacy/assets/", "").split("\n")
 
-    fileListCopy = fileList.copy()
-    imgCol_name = os.path.split(gs_dir)[-1]
-    while(len(fileListCopy) > 0):
-        print()
-        pprint(fileListCopy)
-        print("-------------------------------------------------------------------")
+    print(asset_list)
+
+    for filename in fileList:
+    # for asset_id in asset_list:
+        filename = os.path.split(asset_id)[-1]
+        asset_id = f"users/{USER}/{eeImgColName}/{filename}"
+
+        julian_day = eval(filename.split("_")[1][5:]) 
+        standard_date = datetime(year, 1, 1) + timedelta(days=julian_day-1)
+        standard_date = standard_date.strftime("%Y-%m-%d")
+
+        if asset_id in asset_list:
+            print(filename, standard_date)
+            os.system(f'earthengine asset set --time_start {standard_date} {asset_id}')
+
+    # fileList = [file for file in os.listdir(dataPath / "COG_rprj") if file[-4:] == ".tif"]
+
+    # """ set property """
+    # import time, subprocess
+    # from datetime import datetime, timedelta
+
+    # fileListCopy = fileList.copy()
+    # imgCol_name = os.path.split(gs_dir)[-1]
+    # while(len(fileListCopy) > 0):
+    #     print()
+    #     pprint(fileListCopy)
+    #     print("-------------------------------------------------------------------")
     
-        response = subprocess.getstatusoutput(f"earthengine ls {VIIRS_NRT_ImgCol}")
-        asset_list = response[1].replace("projects/earthengine-legacy/assets/", "").split("\n")
+    #     response = subprocess.getstatusoutput(f"earthengine ls {VIIRS_NRT_ImgCol}")
+    #     asset_list = response[1].replace("projects/earthengine-legacy/assets/", "").split("\n")
 
-        for filename in fileList:
-            asset_id = f"{VIIRS_NRT_ImgCol}/{filename}"  # VNP09GA_NRT_A2021198_h10v03_001
+    #     for filename in fileList:
+    #         asset_id = f"{VIIRS_NRT_ImgCol}/{filename}"  # VNP09GA_NRT_A2021198_h10v03_001
             
-            if 'VNP09GA' in SOURCE.products_id:
-                julian_day = eval(filename.split("_")[2][5:])
-            if 'MOD09GA' in SOURCE.products_id:
-                julian_day = eval(filename.split("_")[1][5:])
+    #         if 'VNP09GA' in SOURCE.products_id:
+    #             julian_day = eval(filename.split("_")[2][5:])
+    #         if 'MOD09GA' in SOURCE.products_id:
+    #             julian_day = eval(filename.split("_")[1][5:])
 
-            standard_date = datetime(year, 1, 1) + timedelta(days=julian_day-1)
-            standard_date = standard_date.strftime("%Y-%m-%d")
+    #         standard_date = datetime(year, 1, 1) + timedelta(days=julian_day-1)
+    #         standard_date = standard_date.strftime("%Y-%m-%d")
 
-            if asset_id in asset_list:
-                # set_image_property(asset_id, query_info)
-                os.system(f'earthengine asset set --time_start {standard_date} {asset_id}')
-                # os.system(f'earthengine asset set --index {standard_date.replace("-","_")} {asset_id}')
+    #         if asset_id in asset_list:
+    #             # set_image_property(asset_id, query_info)
+    #             os.system(f'earthengine asset set --time_start {standard_date} {asset_id}')
+    #             # os.system(f'earthengine asset set --index {standard_date.replace("-","_")} {asset_id}')
                 
-                try:
-                    fileListCopy.remove(filename)
-                    print(f"{asset_id} [set time_start!]")
-                except:
-                    print(f"{asset_id} [failed to remove!]")
-            else:
-                print(f"{asset_id} [Not Ready in GEE!]")
+    #             try:
+    #                 fileListCopy.remove(filename)
+    #                 print(f"{asset_id} [set time_start!]")
+    #             except:
+    #                 print(f"{asset_id} [failed to remove!]")
+    #         else:
+    #             print(f"{asset_id} [Not Ready in GEE!]")
 
-        if(len(fileListCopy) > 0):
-            time.sleep(60) # wait?
+    #     if(len(fileListCopy) > 0):
+    #         time.sleep(60) # wait?

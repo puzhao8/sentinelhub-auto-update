@@ -9,43 +9,45 @@ import earthpy as ep
 import xarray as xr
 import rioxarray as rxr
 
-url = Path('\\61\\MOD09GA\\2022\\213\\MOD09GA.A2022213.h08v03.061.2022215042622.hdf')
+rootDir = Path("C:\\eo4wildfire\\data\\MODIS_NRT")
+inDir = rootDir / "61/MOD09GA/2022/214"
+outDir = rootDir / "COG_test"
 
+filename = "MOD09GA.A2022214.h17v04.061.2022216033241"
 
+print(filename)
 
-def convert_MODIS_hdf_to_geotiff(inDir, outDir):
-    # fileList = [file for file in os.listdir(inDir) if file.endswith(SOURCE.format) and file.startswith(SOURCE.products_id)] # Search for .h5 files in current directory
-    fileList = [file for file in os.listdir(inDir) if file.endswith('.hdf') and file.startswith('MOD09GA')] # Search for .h5 files in current directory
-    for file in fileList[:2]:
-        filename = file[:-4]
-        print(filename)
+# Open just the bands that you want to process
+desired_bands = ["sur_refl_b01_1",
+                "sur_refl_b02_1",
+                "sur_refl_b03_1",
+                "sur_refl_b04_1",
+                "sur_refl_b07_1",
+                ]
+# Notice that here, you get a single xarray object with just the bands that
+# you want to work with
+modis_bands = rxr.open_rasterio(inDir / f"{filename}.hdf",
+                        masked=True,
+                        variable=desired_bands
+                ).squeeze()
 
-        # Open just the bands that you want to process
-        desired_bands = ["sur_refl_b01_1",
-                        "sur_refl_b02_1",
-                        "sur_refl_b03_1",
-                        "sur_refl_b04_1",
-                        "sur_refl_b07_1",
-                        ]
-        # Notice that here, you get a single xarray object with just the bands that
-        # you want to work with
-        modis_bands = rxr.open_rasterio(inDir / f"{filename}.hdf",
-                                masked=True,
-                                variable=desired_bands
-                        ).squeeze()
+outDir.mkdir(exist_ok=True)
+modis_bands.rio.to_raster(outDir / f"{filename}.tif") 
+            # .reproject("EPSG:4326").rio \
+            
 
-        outDir.mkdir(exist_ok=True)
-        modis_bands.rio.to_raster(outDir / f"{filename}.tif")
+src_url = outDir / f"{filename}.tif"
+dst_url = outDir / f"COG_{filename}_noProjection.tif"
+os.system(f"gdal_translate {src_url} {dst_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+ 
 
+# if __name__ == "__main__":
 
+#     rootDir = Path("C:\\eo4wildfire\\data\\MODIS_NRT")
+#     inDir = rootDir / "61/MOD09GA/2022/213"
+#     outDir = rootDir / "COG"
 
-if __name__ == "__main__":
-
-    rootDir = Path("C:\\eo4wildfire\\data\\MODIS_NRT")
-    inDir = rootDir / "61/MOD09GA/2022/213"
-    outDir = rootDir / "COG"
-
-    convert_MODIS_hdf_to_geotiff(inDir, outDir)
+#     convert_MODIS_hdf_to_geotiff(inDir, outDir)
 
 
 # print(modis_pre_bands)
