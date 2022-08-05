@@ -1,7 +1,11 @@
-
+.idea
+data
+venv
 outputs/*
 outputs
 data/*
 .DS_Store/*
 nasa-viirs/*
 *.log
+.DS_Store
+*.pyc

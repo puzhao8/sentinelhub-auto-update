@@ -3,9 +3,11 @@
 # viirs ftp: https://e4ftl01.cr.usgs.gov/VIIRS/VNP09GA.001/2021.07.05/
 # https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/VNP09GA/
 # hHHvVV GRID: https://modis-land.gsfc.nasa.gov/MODLAND_grid.html
-# DoY (Day of Year): https://asd.gsfc.nasa.gov/Craig.Markwardt/doy2021.html
 
-from itertools import product
+# MODIS
+# https://www.earthdatascience.org/courses/use-data-open-source-python/hierarchical-data-formats-hdf/open-MODIS-hdf4-files-python/
+
+
 import os
 import datetime as dt
 from genericpath import isfile
@@ -14,16 +16,25 @@ import numbers
 from pathlib import Path
 import shutil
 import ee
-# ee.Initialize()
+ee.Initialize()
 
+from easydict import EasyDict as edict
 # from ee import data
 # from numpy.char import startswith
 
 import h5py
 import numpy as np
-from osgeo import gdal, gdal_array
 
+# try: 
+import gdal
+# except:
+#     from osgeo import gdal
+
+from osgeo import gdal_array
 from LaadsDataHandler.laads_client import LaadsClient
+
+import xarray as xr
+import rioxarray as rxr
 
 
 def get_geoInfo_and_projection(f):
@@ -73,7 +84,8 @@ def get_geoInfo_and_projection(f):
 
     return geoInfo, prj
 
-def convert_h5_to_cog(inDir, outDir, BANDS=["M3", "M4", "M5", "M7", "M10", "M11", "QF2"], band_scale_flag=False):
+def convert_h5_to_cog(inDir, outDir, SOURCE, band_scale_flag=False):
+    BANDS = SOURCE.BANDS
     # os.chdir(inDir)   
     # VNP = Path(os.path.split(inDir)[0])                                                      # Change to working directory
     
@@ -83,8 +95,9 @@ def convert_h5_to_cog(inDir, outDir, BANDS=["M3", "M4", "M5", "M7", "M10", "M11"
     if not os.path.exists(outDir): os.makedirs(outDir)                      # Create output directory
 
 
-    fileList = [file for file in os.listdir(inDir) if file.endswith('.h5') and file.startswith('VNP09GA')] # Search for .h5 files in current directory
-    
+    # fileList = [file for file in os.listdir(inDir) if file.endswith('.h5') and file.startswith('VNP09GA')] # Search for .h5 files in current directory
+    fileList = [file for file in os.listdir(inDir) if file.endswith(SOURCE.format) and file.startswith(SOURCE.products_id)] # Search for .h5 files in current directory
+
     print("------------------------------------")
     for f in fileList: print(f)       
     print("------------------------------------")                                                                # Print files in list
@@ -208,10 +221,10 @@ def download_viirs_on(julian_day, year, hh_list=['10', '11'], vv_list =['03']):
             print(f"\njulian_day: {julian_day}， h{hh}v{vv}")
             print("-----------------------------------------------------------")
 
-            url_part = f"5000/{PRODUCT}/2021/{julian_day}/{PRODUCT}.A2021{julian_day}.h{hh}v{vv}.001.h5"
-            command = "c:/wget/wget.exe -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=5 " + \
-                f"\"https://nrt4.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/\"{url_part} \
-                    --header \"Authorization: Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYyNjQ0MTQyMTphMzhkYTcwMzc5NTg1M2NhY2QzYjY2NTU0ZWFkNzFjMGEwMTljMmJj\" \
+            url_part = f"5000/VNP09GA_NRT/"+str(year)+f"/{julian_day}/"
+            command = "wget -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=5 " + \
+                f"\"https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/{url_part}\" \
+                    -A \"VNP09GA_NRT.A"+str(year)+f"{julian_day}.h{hh}v{vv}.001.*.h5\" --header \"Authorization: Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYyNjQ0MTQyMTphMzhkYTcwMzc5NTg1M2NhY2QzYjY2NTU0ZWFkNzFjMGEwMTljMmJj\" \
                     -P {dataPath}"
 
             print(command)
@@ -221,7 +234,35 @@ def download_viirs_on(julian_day, year, hh_list=['10', '11'], vv_list =['03']):
                 os.system(command)
 
 
-def viirs_preprocessing_and_upload(dataPath):
+def convert_MODIS_hdf_to_geotiff(inDir, outDir, SOURCE):
+    fileList = [file for file in os.listdir(inDir) if file.endswith(SOURCE.format) and file.startswith(SOURCE.products_id)] # Search for .h5 files in current directory
+    # fileList = [file for file in os.listdir(inDir) if file.endswith('.hdf') and file.startswith('MOD09GA')] # Search for .h5 files in current directory
+    pprint(fileList)
+
+    for file in fileList:
+        filename = file[:-4]
+        print(filename)
+
+        # Open just the bands that you want to process
+        # desired_bands = SOURCE.BANDS
+        desired_bands = ["sur_refl_b01_1",
+                        "sur_refl_b02_1",
+                        "sur_refl_b03_1",
+                        "sur_refl_b04_1",
+                        "sur_refl_b07_1",
+                        ]
+        # Notice that here, you get a single xarray object with just the bands that
+        # you want to work with
+        modis_bands = rxr.open_rasterio(inDir / f"{filename}.hdf",
+                                masked=True,
+                                variable=desired_bands
+                        ).squeeze()
+
+        outDir.mkdir(exist_ok=True)
+        modis_bands.rio.to_raster(outDir / f"{filename}.tif")
+
+
+def viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE):
     # CRS optimization and cloud optimization
 
     if os.path.exists(dataPath / "COG"):
@@ -230,19 +271,24 @@ def viirs_preprocessing_and_upload(dataPath):
     if not os.path.exists(dataPath / "COG"):
         os.makedirs(dataPath / 'COG')
     
-
-    inDir = dataPath / "5000" / "VNP09GA_NRT" / "2022"
+    inDir = dataPath / FOLDER
     print(inDir)
 
-    julianDay_list = [folder for folder in os.listdir(str(inDir)) if folder != ".DS_Store"]
-    for date in julianDay_list:
-        outDir = dataPath / 'COG'
-        print(f"outDir: {outDir}")
-        convert_h5_to_cog(inDir=inDir / date, outDir=outDir, BANDS=["M3", "M4", "M5", "M7", "M10", "M11", "QF2"])
-        
+    if True:
+        julianDay_list = [folder for folder in os.listdir(str(inDir)) if folder != ".DS_Store"]
+        for date in julianDay_list:
+            outDir = dataPath / 'COG'
+            print(f"outDir: {outDir}")
+
+            if SOURCE.products_id == "VNP09GA":
+                convert_h5_to_cog(inDir=inDir / date, outDir=outDir, SOURCE=SOURCE)
+            
+            if SOURCE.products_id == "MOD09GA":
+                convert_MODIS_hdf_to_geotiff(inDir=inDir / date, outDir=outDir, SOURCE=SOURCE)
+    
     # upload to Gcloud
     fileList = [file for file in os.listdir(dataPath / "COG") if file[-4:] == ".tif"]
-    # pprint(fileList)
+    pprint(fileList)
 
     dstList = []
     for file in fileList:
@@ -252,7 +298,7 @@ def viirs_preprocessing_and_upload(dataPath):
         filename = file[:-4].replace(".", "_")
 
         # if is not available in gee, then upload 
-        if(ee.ImageCollection("users/omegazhangpzh/VIIRS_NRT")
+        if(ee.ImageCollection(f"users/{USER}/{SOURCE.eeImgColName}")
                 .filter(ee.Filter.eq("system:index", filename)).size().getInfo() == 0):
 
             rprjDir = Path(f"{os.path.split(url)[0]}_rprj")
@@ -260,7 +306,7 @@ def viirs_preprocessing_and_upload(dataPath):
 
             dst_url = rprjDir / f"{filename}.tif"
             tmp_url = rprjDir / f"{filename}_tmp.tif"
-            os.system(f"gdalwarp {url} {tmp_url} -t_srs EPSG:4326 -r bilinear -ts 1200 1200 -dstnodata 0")
+            # os.system(f"gdalwarp {url} {tmp_url} -t_srs EPSG:4326 -r bilinear -ts 1200 1200 -dstnodata 0")
             os.system(f"gdal_translate {tmp_url} {dst_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
             
             if isfile(tmp_url): os.remove(tmp_url)
@@ -284,26 +330,61 @@ if __name__ == "__main__":
     # # 1km:  "M3",     "M4",  "M5",  "M7",   "M10",    "M11",  "QF2"
     # # "Blue",         "Green", "Red", "NIR", "SWIR1", "SWIR2", "BitMask"
     # BANDS = ["M3",     "M4",  "M5",  "M7",   "M10",    "M11",  "QF2"]
+
     hh_list_na = ['08', '09', '10', '11', '12', '13']
     vv_list_na = ['02', '03', '04', '05']
 
     hh_list_eu = ['08', '09', '10', '11', '12', '13']
     vv_list_eu = ['02', '03', '04', '05']
 
-    # workspace = Path(os.getcwd())
-    eeImgColName = "VIIRS_NRT"
-    year=2022
-    workspace = Path("data")
-    dataPath = workspace / 'data' / eeImgColName
-    download = True
-    if download:
-        if os.path.exists(dataPath): shutil.rmtree(f"{str(dataPath)}/")
+    ''' Configuration '''
+    CFG = {
+        'VIIRS': {
+            "products_id": "VNP09GA",
+            "collection_id": '5000',
+            "eeImgColName": "VIIRS_NRT",
+            "format": '.h5',
+            "BANDS": ["M3", "M4", "M5", "M7", "M10", "M11", "QF2"]
+        },
 
-    tmpPath = dataPath / "5000/VNP09GA_NRT" / str(year)
+        'MODIS': {
+            "products_id": "MOD09GA",
+            "collection_id": '61',
+            "eeImgColName": "MODIS_NRT",
+            "format": '.hdf',
+            "BANDS": ["sur_refl_b01", "sur_refl_b02", "sur_refl_b03", "sur_refl_b04", "sur_refl_b07"]
+        },
+    }
+
+    USER = "omegazhangpzh"
+    SOURCE = edict(CFG['MODIS'])
+    products_id = SOURCE.products_id
+    collection_id = SOURCE.collection_id
+    eeImgColName = SOURCE.eeImgColName
+    BANDS=SOURCE.BANDS
+
+    # Configuration 
+    date = '2022-08-02'
+    year = 2022
+    
+    # local path
+    # workspace = Path(os.getcwd())
+    workspace = Path("C:\eo4wildfire")
+    dataPath = workspace / 'data' / eeImgColName
+    FOLDER = f"{collection_id}/{products_id}/{year}"
+
+    # cloud path
+    gs_dir = f"gs://sar4wildfire/{eeImgColName}" # GCP
+    VIIRS_NRT_ImgCol = f"users/{USER}/{eeImgColName}" # GEE
+
+    # remove downloaded data in the last run
+    if True and os.path.exists(dataPath):
+        shutil.rmtree(f"{str(dataPath)}/")
+        # os.rmdir(dataPath)
+
+    tmpPath = dataPath / FOLDER
     if not os.path.exists(tmpPath): os.makedirs(tmpPath)
 
-    gs_dir = f"gs://ai4wildfire/{eeImgColName}"
-    VIIRS_NRT_ImgCol = f"users/eo4wildfire/{eeImgColName}"
 
     # Download from Lance
     # lance_date = datetime.date.today() - datetime.date(year, 1, 3)
@@ -317,15 +398,17 @@ if __name__ == "__main__":
     #         download_viirs_on(julian_day, year, hh_list=hh_list_na, vv_list =vv_list_na)
     #         # Europe
     #         download_viirs_on(julian_day, year, hh_list=hh_list_eu, vv_list =vv_list_eu)
-    date = '2022-07-01'
-    date_ndays = (dt.datetime.strptime(date, '%Y-%m-%d') - dt.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
-    julian_today=date_ndays
-    print(f"julian_today: {julian_today}")
-    laads_client = LaadsClient()
-    laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
-    laads_client.download_files_to_local_based_on_filelist(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
+    
+    if True: # Download or Not
+        date_ndays = (dt.datetime.strptime(date, '%Y-%m-%d') - dt.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
+        julian_today=date_ndays
+        print(f"julian_today: {julian_today}")
 
-    fileList = viirs_preprocessing_and_upload(dataPath)
+        laads_client = LaadsClient()
+        laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=[products_id], collection_id=collection_id, data_path=f'{dataPath}/{FOLDER}', julian_day=str(date_ndays))
+        laads_client.download_files_to_local_based_on_filelist(date, products_id=[products_id], collection_id=collection_id, data_path=f'{dataPath}/{FOLDER}', julian_day=str(date_ndays))
+
+    fileList = viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE)
     pprint(fileList)
     
     # fileList = [
