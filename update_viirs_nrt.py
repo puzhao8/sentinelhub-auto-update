@@ -12,7 +12,7 @@ import numbers
 from pathlib import Path
 import shutil
 import ee
-ee.Initialize()
+# ee.Initialize()
 
 # from ee import data
 # from numpy.char import startswith
@@ -20,6 +20,9 @@ ee.Initialize()
 import h5py
 import numpy as np
 from osgeo import gdal, gdal_array
+
+from LaadsDataHandler.laads_client import LaadsClient
+
 
 def get_geoInfo_and_projection(f):
     
@@ -199,13 +202,14 @@ def crs_cloud_optimization(url):
 def download_viirs_on(julian_day, year, hh_list=['10', '11'], vv_list =['03']):
     for hh in hh_list:
         for vv in vv_list:
+
             print(f"\njulian_day: {julian_day}， h{hh}v{vv}")
             print("-----------------------------------------------------------")
 
-            url_part = f"5000/VNP09GA_NRT/"+str(year)+f"/{julian_day}/VNP09GA_NRT.A"+str(year)+f"{julian_day}.h{hh}v{vv}.001.h5"
-            command = "c:/wget/wget.exe -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=5 " + \
-                f"\"https://nrt4.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/{url_part}\" \
-                    --header \"Authorization: Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYyNjQ0MTQyMTphMzhkYTcwMzc5NTg1M2NhY2QzYjY2NTU0ZWFkNzFjMGEwMTljMmJj\" \
+            url_part = f"5000/VNP09GA_NRT/"+str(year)+f"/{julian_day}/"
+            command = "wget -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=5 " + \
+                f"\"https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/{url_part}\" \
+                    -A \"VNP09GA_NRT.A"+str(year)+f"{julian_day}.h{hh}v{vv}.001.*.h5\" --header \"Authorization: Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYyNjQ0MTQyMTphMzhkYTcwMzc5NTg1M2NhY2QzYjY2NTU0ZWFkNzFjMGEwMTljMmJj\" \
                     -P {dataPath}"
 
             print(command)
@@ -214,10 +218,11 @@ def download_viirs_on(julian_day, year, hh_list=['10', '11'], vv_list =['03']):
             if not os.path.exists(save_url):
                 os.system(command)
 
+
 def viirs_preprocessing_and_upload(dataPath):
     # CRS optimization and cloud optimization
 
-    if os.path.exists(dataPath / "COG"): 
+    if os.path.exists(dataPath / "COG"):
         shutil.rmtree(dataPath / 'COG')
 
     if not os.path.exists(dataPath / "COG"):
@@ -277,14 +282,20 @@ if __name__ == "__main__":
     # # 1km:  "M3",     "M4",  "M5",  "M7",   "M10",    "M11",  "QF2"
     # # "Blue",         "Green", "Red", "NIR", "SWIR1", "SWIR2", "BitMask"
     # BANDS = ["M3",     "M4",  "M5",  "M7",   "M10",    "M11",  "QF2"]
+    hh_list_na = ['08', '09', '10', '11', '12', '13']
+    vv_list_na = ['02', '03', '04', '05']
 
+    hh_list_eu = ['08', '09', '10', '11', '12', '13']
+    vv_list_eu = ['02', '03', '04', '05']
 
     # workspace = Path(os.getcwd())
     eeImgColName = "VIIRS_NRT"
     year=2022
-    workspace = Path("D:/Sentinel_hub")
+    workspace = Path("data")
     dataPath = workspace / 'data' / eeImgColName
-    if os.path.exists(dataPath): shutil.rmtree(f"{str(dataPath)}/")
+    download = True
+    if download:
+        if os.path.exists(dataPath): shutil.rmtree(f"{str(dataPath)}/")
 
     tmpPath = dataPath / "5000/VNP09GA_NRT" / str(year)
     if not os.path.exists(tmpPath): os.makedirs(tmpPath)
@@ -293,22 +304,24 @@ if __name__ == "__main__":
     VIIRS_NRT_ImgCol = f"users/eo4wildfire/{eeImgColName}"
 
     # Download from Lance
-    lance_date = datetime.date.today() - datetime.date(year, 1, 1)
-    julian_today = lance_date.days
-    print(f"julian_today: {julian_today}")
+    # lance_date = datetime.date.today() - datetime.date(year, 1, 3)
+    # julian_today = lance_date.days
 
-    for julian_day in range(julian_today, julian_today+1):
-        # North America
-        if not os.path.exists(tmpPath / str(julian_day)):
-            os.mkdir(tmpPath / str(julian_day))
-        download_viirs_on(julian_day, year, hh_list=['10', '11'], vv_list =['02', '03', '04', '05'])
-        download_viirs_on(julian_day, year, hh_list=['12', '13'], vv_list =['02', '03'])
-        download_viirs_on(julian_day, year, hh_list=['12', '13'], vv_list =['04', '05'])
-        download_viirs_on(julian_day, year, hh_list=['08', '09'], vv_list =['04', '05'])
-        download_viirs_on(julian_day, year, hh_list=['09'], vv_list =['03']) # low-res, why?
-    
-        # Europe 
-        download_viirs_on(julian_day, year, hh_list=['17', '18', '19', '20', '21'], vv_list =['02', '03', '04', '05', '06'])
+    # if download:
+    #     for julian_day in range(julian_today, julian_today+1):
+    #         # North America
+    #         if not os.path.exists(tmpPath / str(julian_day)):
+    #             os.mkdir(tmpPath / str(julian_day))
+    #         download_viirs_on(julian_day, year, hh_list=hh_list_na, vv_list =vv_list_na)
+    #         # Europe
+    #         download_viirs_on(julian_day, year, hh_list=hh_list_eu, vv_list =vv_list_eu)
+    date = '2022-07-01'
+    date_ndays = (dt.datetime.strptime(date, '%Y-%m-%d') - dt.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
+    julian_today=date_ndays
+    print(f"julian_today: {julian_today}")
+    laads_client = LaadsClient()
+    laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
+    laads_client.download_files_to_local_based_on_filelist(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
 
     fileList = viirs_preprocessing_and_upload(dataPath)
     pprint(fileList)

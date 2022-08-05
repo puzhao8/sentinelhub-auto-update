@@ -67,15 +67,8 @@ class LaadsClient:
                     os.system(wget_command_vnp)
 
 if __name__ == '__main__':
-    date = '2022-08-01'
+    date = '2022-07-01'
     date_ndays = (datetime.datetime.strptime(date, '%Y-%m-%d') - datetime.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
     laads_client = LaadsClient()
-
-    # # VIIRS
-    # laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
-    # laads_client.download_files_to_local_based_on_filelist(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
-
-    # MODIS
-    laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=['MOD09GA'], collection_id='61', data_path='../data/data/MODIS_NRT/61/MOD09GA/2022', julian_day=str(date_ndays))
-    laads_client.download_files_to_local_based_on_filelist(date, products_id=['MOD09GA'], collection_id='61', data_path='../data/data/MODIS_NRT/61/MOD09GA/2022', julian_day=str(date_ndays))
-
+    laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
+    laads_client.download_files_to_local_based_on_filelist(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))

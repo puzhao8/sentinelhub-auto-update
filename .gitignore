@@ -1,6 +1,9 @@
-
+.idea
+data
+venv
 outputs/*
 outputs
 data/*
 .DS_Store/*
 nasa-viirs/*
+.DS_Store

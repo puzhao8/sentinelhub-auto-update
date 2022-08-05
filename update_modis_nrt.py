@@ -21,7 +21,7 @@ import h5py
 import numpy as np
 from osgeo import gdal, gdal_array
 
-from laads_client import LaadsClient
+from LaadsDataHandler.laads_client import LaadsClient
 
 def get_geoInfo_and_projection(f):
     
