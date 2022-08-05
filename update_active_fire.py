@@ -140,7 +140,7 @@ if __name__ == "__main__":
     
         # if (int(time_split[0]) % 3 == 0) and (int(time_split[1])==0) and (int(time_split[2])==0):
             
-    upadte_active_fire(period_list=['24h']) #  , '7d', '48h'
+    upadte_active_fire(period_list=['7d', '24h']) #  , '7d', '48h'
 
     AF_SUOMI_VIIRS = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/SUOMI_VIIRS_C2_Global_24h")
     AF = AF_SUOMI_VIIRS.map(set_AF_date)
