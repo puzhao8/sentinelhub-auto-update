@@ -306,8 +306,11 @@ def viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE):
 
             dst_url = rprjDir / f"{filename}.tif"
             tmp_url = rprjDir / f"{filename}_tmp.tif"
+
             # os.system(f"gdalwarp {url} {tmp_url} -t_srs EPSG:4326 -r bilinear -ts 1200 1200 -dstnodata 0")
-            os.system(f"gdal_translate {tmp_url} {dst_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+            # os.system(f"gdal_translate {tmp_url} {dst_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
+
+            os.system(f"gdal_translate {url} {dst_url} -co TILED=YES -co COPY_SRC_OVERVIEWS=YES -co COMPRESS=LZW")
             
             if isfile(tmp_url): os.remove(tmp_url)
             
@@ -334,7 +337,7 @@ if __name__ == "__main__":
     hh_list_na = ['08', '09', '10', '11', '12', '13']
     vv_list_na = ['02', '03', '04', '05']
 
-    hh_list_eu = ['08', '09', '10', '11', '12', '13']
+    hh_list_eu = ['17', '18', '19', '20', '21']
     vv_list_eu = ['02', '03', '04', '05']
 
     ''' Configuration '''
@@ -378,9 +381,12 @@ if __name__ == "__main__":
     VIIRS_NRT_ImgCol = f"users/{USER}/{eeImgColName}" # GEE
 
     # remove downloaded data in the last run
-    if True and os.path.exists(dataPath):
+    # if True and os.path.exists(dataPath):
+    try: 
         shutil.rmtree(f"{str(dataPath)}/")
-        # os.rmdir(dataPath)
+        os.rmdir(dataPath)
+    except: 
+        pass
 
     tmpPath = dataPath / FOLDER
     if not os.path.exists(tmpPath): os.makedirs(tmpPath)
@@ -408,13 +414,15 @@ if __name__ == "__main__":
         laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=[products_id], collection_id=collection_id, data_path=f'{dataPath}/{FOLDER}', julian_day=str(date_ndays))
         laads_client.download_files_to_local_based_on_filelist(date, products_id=[products_id], collection_id=collection_id, data_path=f'{dataPath}/{FOLDER}', julian_day=str(date_ndays))
 
-    fileList = viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE)
-    pprint(fileList)
+        fileList = viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE)
+        pprint(fileList)
     
     # fileList = [
     #     "VNP09GA_NRT_A2021200_h10v03_001",
     #     "VNP09GA_NRT_A2021200_h11v03_001",
     # ]
+
+    fileList = [file for file in os.listdir(dataPath / "COG_rprj") if file[-4:] == ".tif"]
 
     """ set property """
     import time, subprocess
@@ -432,8 +440,13 @@ if __name__ == "__main__":
 
         for filename in fileList:
             asset_id = f"{VIIRS_NRT_ImgCol}/{filename}"  # VNP09GA_NRT_A2021198_h10v03_001
-            julian_day = eval(filename.split("_")[2][5:])
-            standard_date = datetime(year, 1, 1) + timedelta(days=julian_day)
+            
+            if 'VNP09GA' in SOURCE.products_id:
+                julian_day = eval(filename.split("_")[2][5:])
+            if 'MOD09GA' in SOURCE.products_id:
+                julian_day = eval(filename.split("_")[1][5:])
+
+            standard_date = datetime(year, 1, 1) + timedelta(days=julian_day-1)
             standard_date = standard_date.strftime("%Y-%m-%d")
 
             if asset_id in asset_list:

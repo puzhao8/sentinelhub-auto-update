@@ -7,6 +7,7 @@ This project is used to reduce the delay of VIIRS, Sentinel-1, and Sentinel-2 up
 https://docs.anaconda.com/anaconda/install/index.html
 ``` bash
 conda env create -f env1.yml
+conda env export -f environment.yml
 ```
 
 ## 2. Install ESA SNAP Desktop Software 
