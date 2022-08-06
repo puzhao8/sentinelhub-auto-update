@@ -244,13 +244,13 @@ def convert_MODIS_hdf_to_geotiff(inDir, outDir, SOURCE):
         print(filename)
 
         # Open just the bands that you want to process
-        # desired_bands = SOURCE.BANDS
-        desired_bands = ["sur_refl_b01_1",
-                        "sur_refl_b02_1",
-                        "sur_refl_b03_1",
-                        "sur_refl_b04_1",
-                        "sur_refl_b07_1",
-                        ]
+        desired_bands = SOURCE.BANDS
+        # desired_bands = ["sur_refl_b01_1",
+        #                 "sur_refl_b02_1",
+        #                 "sur_refl_b03_1",
+        #                 "sur_refl_b04_1",
+        #                 "sur_refl_b07_1",
+        #                 ]
         # Notice that here, you get a single xarray object with just the bands that
         # you want to work with
         modis_bands = rxr.open_rasterio(inDir / f"{filename}.hdf",
@@ -281,7 +281,8 @@ def viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE):
             print(f"outDir: {outDir}")
 
             if SOURCE.products_id == "VNP09GA":
-                convert_h5_to_cog(inDir=inDir / date, outDir=outDir, SOURCE=SOURCE)
+                # convert_h5_to_cog(inDir=inDir / date, outDir=outDir, SOURCE=SOURCE)
+                convert_MODIS_hdf_to_geotiff(inDir=inDir / date, outDir=outDir, SOURCE=SOURCE)
             
             if SOURCE.products_id == "MOD09GA":
                 convert_MODIS_hdf_to_geotiff(inDir=inDir / date, outDir=outDir, SOURCE=SOURCE)
@@ -355,20 +356,20 @@ if __name__ == "__main__":
             "collection_id": '61',
             "eeImgColName": "MODIS_NRT",
             "format": '.hdf',
-            "BANDS": ["sur_refl_b01", "sur_refl_b02", "sur_refl_b03", "sur_refl_b04", "sur_refl_b07"]
+            "BANDS": ["sur_refl_b01_1", "sur_refl_b02_1", "sur_refl_b03_1", "sur_refl_b04_1", "sur_refl_b07_1"]
         },
     }
 
     USER = "omegazhangpzh"
-    SOURCE = edict(CFG['MODIS'])
+    SOURCE = edict(CFG['VNP09GA'])
+    # Configuration 
+    date = '2022-08-03'
+    year = 2022
+
     products_id = SOURCE.products_id
     collection_id = SOURCE.collection_id
     eeImgColName = SOURCE.eeImgColName
     BANDS=SOURCE.BANDS
-
-    # Configuration 
-    date = '2022-08-03'
-    year = 2022
     
     # local path
     # workspace = Path(os.getcwd())
@@ -433,7 +434,7 @@ if __name__ == "__main__":
 
     for filename in fileList:
     # for asset_id in asset_list:
-        filename = os.path.split(asset_id)[-1]
+        # filename = os.path.split(asset_id)[-1]
         asset_id = f"users/{USER}/{eeImgColName}/{filename}"
 
         julian_day = eval(filename.split("_")[1][5:]) 

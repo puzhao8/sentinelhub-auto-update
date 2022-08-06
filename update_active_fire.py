@@ -142,7 +142,7 @@ if __name__ == "__main__":
             
     upadte_active_fire(period_list=['7d']) #  
 
-    AF_SUOMI_VIIRS = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/SUOMI_VIIRS_C2_Global_24h")
+    AF_SUOMI_VIIRS = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/MODIS_C6_1_Global_7d")
     AF = AF_SUOMI_VIIRS.map(set_AF_date)
 
     print(f"\n------------------> update time: {current_time} <-------------------")
