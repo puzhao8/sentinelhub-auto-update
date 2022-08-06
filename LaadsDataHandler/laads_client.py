@@ -44,8 +44,8 @@ class LaadsClient:
             hh_list_eu = ['17', '18', '19', '20', '21']
             vv_list_eu = ['02', '03', '04', '05']
 
-            hh_list_na = hh_list_eu
-            vv_list_na = vv_list_eu
+            # hh_list_eu = hh_list_na
+            # vv_list_eu = vv_list_na
 
             product_id = products_id[i]
             vnp_json = open(os.path.join(data_path, julian_day, date + '_'+product_id+'.json'), )

@@ -7,6 +7,7 @@
 # MODIS
 # https://www.earthdatascience.org/courses/use-data-open-source-python/hierarchical-data-formats-hdf/open-MODIS-hdf4-files-python/
 # LAADS DATA SOURCE: https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/
+# check in APP: https://eo4wildfire.users.earthengine.app/view/wildfire-monitor-eu
 
 
 import os
@@ -362,9 +363,9 @@ if __name__ == "__main__":
     }
 
     USER = "omegazhangpzh"
-    SOURCE = edict(CFG['VNP09GA'])
+    SOURCE = edict(CFG['MODIS'])
     # Configuration 
-    date = '2022-08-03'
+    date = '2022-08-04' # you only need to change this
     year = 2022
 
     products_id = SOURCE.products_id
@@ -407,7 +408,7 @@ if __name__ == "__main__":
     #         # Europe
     #         download_viirs_on(julian_day, year, hh_list=hh_list_eu, vv_list =vv_list_eu)
     
-    if True: # Download or Not
+    if False: # Download or Not
         date_ndays = (dt.datetime.strptime(date, '%Y-%m-%d') - dt.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
         julian_today=date_ndays
         print(f"julian_today: {julian_today}")
@@ -416,8 +417,8 @@ if __name__ == "__main__":
         laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=[products_id], collection_id=collection_id, data_path=f'{dataPath}/{FOLDER}', julian_day=str(date_ndays))
         laads_client.download_files_to_local_based_on_filelist(date, products_id=[products_id], collection_id=collection_id, data_path=f'{dataPath}/{FOLDER}', julian_day=str(date_ndays))
 
-        fileList = viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE)
-        pprint(fileList)
+    fileList = viirs_preprocessing_and_upload(dataPath, FOLDER, SOURCE)
+    pprint(fileList)
     
     # fileList = [
     #     "VNP09GA_NRT_A2021200_h10v03_001",
