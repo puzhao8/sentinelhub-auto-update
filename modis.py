@@ -9,12 +9,12 @@ import earthpy as ep
 import xarray as xr
 import rioxarray as rxr
 
-# MODIS
-rootDir = Path("C:\\eo4wildfire\\data\\MODIS_NRT")
-inDir = rootDir / "61/MOD09GA/2022/214"
-outDir = rootDir / "COG_test"
+# # MODIS
+# rootDir = Path("C:\\eo4wildfire\\data\\MODIS_NRT")
+# inDir = rootDir / "61/MOD09GA/2022/214"
+# outDir = rootDir / "COG_test"
 
-filename = "MOD09GA.A2022214.h17v04.061.2022216033241"
+# filename = "MOD09GA.A2022214.h17v04.061.2022216033241"
 
 # VIIRS
 rootDir = Path("C:\\eo4wildfire")
@@ -57,7 +57,6 @@ modis_bands = rxr.open_rasterio(inDir / f"{filename}.h5",
 outDir.mkdir(exist_ok=True)
 modis_bands.rio \
             .write_crs("EPSG:4326").rio \
-            .reproject("EPSG:4326").rio \
             .to_raster(outDir / f"{filename}.tif")
             
 

@@ -365,7 +365,7 @@ if __name__ == "__main__":
     USER = "omegazhangpzh"
     SOURCE = edict(CFG['MODIS'])
     # Configuration 
-    date = '2022-08-04' # you only need to change this
+    date = '2022-08-05' # you only need to change this
     year = 2022
 
     products_id = SOURCE.products_id
@@ -389,7 +389,7 @@ if __name__ == "__main__":
         shutil.rmtree(f"{str(dataPath)}/")
         os.rmdir(dataPath)
     except: 
-        pass
+        print("---------- failed to delete historical data !!! ---------------")
 
     tmpPath = dataPath / FOLDER
     if not os.path.exists(tmpPath): os.makedirs(tmpPath)
