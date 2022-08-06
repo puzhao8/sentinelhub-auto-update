@@ -6,6 +6,7 @@
 
 # MODIS
 # https://www.earthdatascience.org/courses/use-data-open-source-python/hierarchical-data-formats-hdf/open-MODIS-hdf4-files-python/
+# LAADS DATA SOURCE: https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/
 
 
 import os
