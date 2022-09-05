@@ -24,7 +24,7 @@ def download_and_upload(url, save_folder, bucket="sar4wildfire", asset_name=None
 
     # print(f"url: {url}")
     downloader = Downloader()
-    # downloader.download(url, save_folder)
+    downloader.download(url, save_folder)
     # # downloader.un_zip(save_folder / f"{filename}.zip")
 
     asset_id = f"users/omegazhangpzh/NRT_AF/{asset_name}"
@@ -152,6 +152,7 @@ def upadte_active_fire_archived(code=215922, year=2021):
 
     for i in range(len(firms[-1:])): # -------------------------------------
         url = nasa_website + firms[i]
+        print(url)
 
         filename, task_id = download_and_upload(url, save_folder, bucket="sar4wildfire", asset_name=asset_names[i])
         task_dict.update({filename: {'id': task_id}})
@@ -225,7 +226,7 @@ if __name__ == "__main__":
         # if (int(time_split[0]) % 3 == 0) and (int(time_split[1])==0) and (int(time_split[2])==0):
             
     # upadte_active_fire(period_list=['24h', '7d', '48h']) #  
-    upadte_active_fire_archived(code=226172 , year=2021)
+    upadte_active_fire_archived(code=288586 , year=2022)
 
     AF_SUOMI_VIIRS = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/SUOMI_VIIRS_C2_Global_24h")
     AF = AF_SUOMI_VIIRS.map(set_AF_date)

@@ -5,11 +5,11 @@ import os
 import requests
 
 
-class LaadsClient:
+class LanceClient:
 
     def __init__(self):
-        self.laads_query_api_link = 'https://ladsweb.modaps.eosdis.nasa.gov/api/v2/content/details'
-        self.download_base_link = 'https://ladsweb.modaps.eosdis.nasa.gov'
+        self.laads_query_api_link = 'https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/'
+        self.download_base_link = 'https://nrt3.modaps.eosdis.nasa.gov'
         self.header = {
             "X-Requested-With": "XMLHttpRequest",
             'Authorization': 'Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYzMzk0NzU0NTphZmRlYWY2MjE2ODg0MjQ5MTEzNmE3MTE4MzZkOWYxYjg3MWQzNWMz'}
@@ -24,7 +24,7 @@ class LaadsClient:
                             + '&collections='+collection_id \
                             + '&archiveSets='+collection_id \
                             + '&temporalRanges=' + date
-            
+            print(download_link)
             response = requests.get(download_link, headers=self.header)
             if response.status_code != 200:
                 raise ConnectionRefusedError
@@ -77,9 +77,9 @@ class LaadsClient:
                     os.system(wget_command_vnp)
 
 if __name__ == '__main__':
-    date = '2022-08-01'
+    date = '2022-09-03'
     date_ndays = (datetime.datetime.strptime(date, '%Y-%m-%d') - datetime.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
-    laads_client = LaadsClient()
+    lance_client = LanceClient()
 
     print("date_ndays: ", date_ndays)
 
@@ -87,11 +87,11 @@ if __name__ == '__main__':
     # laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
     # laads_client.download_files_to_local_based_on_filelist(date, products_id=['VNP09GA'], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
 
-    # # MODIS
-    # laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=['MOD09GA'], collection_id='61', data_path='../data/data/MODIS_NRT/61/MOD09GA/2022', julian_day=str(date_ndays))
-    # laads_client.download_files_to_local_based_on_filelist(date, products_id=['MOD09GA'], collection_id='61', data_path='../data/data/MODIS_NRT/61/MOD09GA/2022', julian_day=str(date_ndays))
+    # # VIIRS NRT
+    # PRODUCT_ID = "VNP09_NRT"
+    # lance_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=[PRODUCT_ID], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
+    # lance_client.download_files_to_local_based_on_filelist(date, products_id=[PRODUCT_ID], collection_id='5000', data_path='../data/data/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
 
-    # VIIRS NRT
-    PRODUCT_ID = "VNP09_NRT"
-    laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=[PRODUCT_ID], collection_id='5000', data_path='C:/eo4wildfire//VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
-    laads_client.download_files_to_local_based_on_filelist(date, products_id=[PRODUCT_ID], collection_id='5000', data_path='C:/eo4wildfire/VIIRS_NRT/5000/VNP09GA_NRT/2022', julian_day=str(date_ndays))
+    # MODIS NRT
+    lance_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=['MOD09GA'], collection_id='61', data_path='C:/eo4wildfire/MODIS_NRT/61/MOD09GA/2022', julian_day=str(date_ndays))
+    lance_client.download_files_to_local_based_on_filelist(date, products_id=['MOD09GA'], collection_id='61', data_path='C:/eo4wildfire/MODIS_NRT/61/MOD09GA/2022', julian_day=str(date_ndays))

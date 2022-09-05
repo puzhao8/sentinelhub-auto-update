@@ -14,7 +14,6 @@ import numbers
 from pathlib import Path
 import shutil
 import ee
-import datetime
 # ee.Initialize()
 
 # from ee import data
@@ -24,7 +23,7 @@ import h5py
 import numpy as np
 from osgeo import gdal, gdal_array
 
-# from LaadsDataHandler.laads_client import PRODUCT_ID, LaadsClient
+from LaadsDataHandler.laads_client import LaadsClient
 
 
 def get_geoInfo_and_projection(f):
@@ -75,17 +74,16 @@ def get_geoInfo_and_projection(f):
     return geoInfo, prj
 
 def convert_h5_to_cog(inDir, outDir, BANDS=["M3", "M4", "M5", "M7", "M10", "M11", "QF2"], band_scale_flag=False):
-    fmt = '.hdf' # .h5
-    
     # os.chdir(inDir)   
     # VNP = Path(os.path.split(inDir)[0])                                                      # Change to working directory
     
     # outDir = Path(os.path.split(VNP)[0]) / 'COG' # Set output directory
+    
     print("BADNS: ", BANDS)
     if not os.path.exists(outDir): os.makedirs(outDir)                      # Create output directory
 
 
-    fileList = [file for file in os.listdir(inDir) if file.endswith(fmt) and file.startswith(PRODUCTS_ID)] # Search for .h5 files in current directory
+    fileList = [file for file in os.listdir(inDir) if file.endswith('.h5') and file.startswith('VNP09GA')] # Search for .h5 files in current directory
     
     print("------------------------------------")
     for f in fileList: print(f)       
@@ -100,9 +98,7 @@ def convert_h5_to_cog(inDir, outDir, BANDS=["M3", "M4", "M5", "M7", "M10", "M11"
         yeardoy = t.split('.')[1][1:]                                                                  # Split name,retrieve ob date
         outName = t.rsplit('.', 1)[0]                                                                  # Keep filename for outname
         date1 = dt.datetime.strptime(yeardoy,'%Y%j').strftime('%m/%d/%Y')                              # Convert date
-        date.append(date1)   
-        
-        ''' for hdf5 only ?! '''                                                                     # Append to list of dates
+        date.append(date1)                                                                             # Append to list of dates
         f = h5py.File(os.path.normpath(Path(inDir) / t), "r")                                                             # Read in VIIRS HDF-EOS5 file
         
         # geoInfo and Projection
@@ -205,22 +201,24 @@ def crs_cloud_optimization(url):
 
 
 
-def download_nrt_data_on(julian_day, YEAR):
-    
-    print(f"\njulian_day: {julian_day}")
-    print("-----------------------------------------------------------")
+def download_viirs_on(julian_day, year, hh_list=['10', '11'], vv_list =['03']):
+    for hh in hh_list:
+        for vv in vv_list:
 
-    url_part = f"{COLLECTION}/{PRODUCTS_ID}/{YEAR}/{julian_day}"
-    command = "c:/wget/wget.exe -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=4 " + \
-        f"https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/{url_part} \
-            --header \"Authorization: Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYyNjQ0MTQyMTphMzhkYTcwMzc5NTg1M2NhY2QzYjY2NTU0ZWFkNzFjMGEwMTljMmJj\" \
-            -P {dataPath}"
+            print(f"\njulian_day: {julian_day}， h{hh}v{vv}")
+            print("-----------------------------------------------------------")
 
-    print(command)
-    save_url = f"{dataPath}/{url_part}"
-    print(save_url)
-    # if not os.path.exists(save_url):
-    os.system(command)
+            url_part = f"5000/{PRODUCT}/2021/{julian_day}/{PRODUCT}.A2021{julian_day}.h{hh}v{vv}.001.h5"
+            command = "c:/wget/wget.exe -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=5 " + \
+                f"\"https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/\"{url_part} \
+                    --header \"Authorization: Bearer emhhb3l1dGltOmVtaGhiM2wxZEdsdFFHZHRZV2xzTG1OdmJRPT06MTYyNjQ0MTQyMTphMzhkYTcwMzc5NTg1M2NhY2QzYjY2NTU0ZWFkNzFjMGEwMTljMmJj\" \
+                    -P {dataPath}"
+
+            print(command)
+            save_url = f"{dataPath}/{url_part}"
+            print(save_url)
+            if not os.path.exists(save_url):
+                os.system(command)
 
 
 def viirs_preprocessing_and_upload(dataPath):
@@ -233,7 +231,7 @@ def viirs_preprocessing_and_upload(dataPath):
         os.makedirs(dataPath / 'COG')
     
 
-    inDir = dataPath / COLLECTION / PRODUCTS_ID / "2022"
+    inDir = dataPath / "5000" / "VNP09_NRT" / "2022"
     print(inDir)
 
     julianDay_list = [folder for folder in os.listdir(str(inDir)) if folder != ".DS_Store"]
@@ -277,6 +275,7 @@ def viirs_preprocessing_and_upload(dataPath):
 
     return dstList
 
+
 from prettyprinter import pprint
 
 if __name__ == "__main__":
@@ -285,60 +284,49 @@ if __name__ == "__main__":
     # # 1km:  "M3",     "M4",  "M5",  "M7",   "M10",    "M11",  "QF2"
     # # "Blue",         "Green", "Red", "NIR", "SWIR1", "SWIR2", "BitMask"
     # BANDS = ["M3",     "M4",  "M5",  "M7",   "M10",    "M11",  "QF2"]
-    PRODUCTS_STORE = {
-        # NRT
-        'MOD02HKM': {
-            "collection": "61",
-            "eeImgColName": 'MODIS_NRT',
-            "instance": "MOD02HKM.A2022243.0000.061.2022243005534.NRT.hdf"
-            },
+    hh_list_na = ['08', '09', '10', '11', '12', '13']
+    vv_list_na = ['02', '03', '04', '05']
 
-        'VNP09_NRT': {
-            "collection": '5000',
-            "eeImgColName": "VIIRS_NRT",
-        }
-    }
+    hh_list_eu = ['08', '09', '10', '11', '12', '13']
+    vv_list_eu = ['02', '03', '04', '05']
 
     # workspace = Path(os.getcwd())
-    PRODUCTS_ID = "VNP09_NRT"
-    date = '2022-09-01'
-    YEAR=2022
-    download = False
+    eeImgColName = "VIIRS_NRT"
+    products_id = "VNP09_NRT"
+    date = '2022-08-31'
 
-    COLLECTION = PRODUCTS_STORE[PRODUCTS_ID]["collection"]
-    eeImgColName = PRODUCTS_STORE[PRODUCTS_ID]["eeImgColName"]
-
-    workspace = Path("C:/eo4wildfire")
+    year=2022
+    workspace = Path("data")
     dataPath = workspace / 'data' / eeImgColName
-    
+    download = True
     if download:
         if os.path.exists(dataPath): shutil.rmtree(f"{str(dataPath)}/")
 
-    tmpPath = dataPath / f"{COLLECTION}/{PRODUCTS_ID}/{YEAR}" # VNP09GA_NRT
+    tmpPath = dataPath / f"5000/{products_id}" / str(year) # VNP09GA_NRT
     if not os.path.exists(tmpPath): os.makedirs(tmpPath)
 
     gs_dir = f"gs://ai4wildfire/{eeImgColName}"
     VIIRS_NRT_ImgCol = f"users/eo4wildfire/{eeImgColName}"
 
-    # Download from LANCE NRT
-    lance_date = datetime.date.today() - datetime.date(YEAR, 1, 1)
-    julian_today = lance_date.days + 1
-    print("julian_today: ", julian_today)
+    # Download from Lance
+    # lance_date = datetime.date.today() - datetime.date(year, 1, 3)
+    # julian_today = lance_date.days
 
-    if False:
-        for julian_day in range(julian_today, julian_today+1):
-            # North America
-            if not os.path.exists(tmpPath / str(julian_day)):
-                os.mkdir(tmpPath / str(julian_day))
-            download_nrt_data_on(julian_day, YEAR)
-
+    # if download:
+    #     for julian_day in range(julian_today, julian_today+1):
+    #         # North America
+    #         if not os.path.exists(tmpPath / str(julian_day)):
+    #             os.mkdir(tmpPath / str(julian_day))
+    #         download_viirs_on(julian_day, year, hh_list=hh_list_na, vv_list =vv_list_na)
+    #         # Europe
+    #         download_viirs_on(julian_day, year, hh_list=hh_list_eu, vv_list =vv_list_eu)
     
-    # date_ndays = (dt.datetime.strptime(date, '%Y-%m-%d') - dt.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
-    # julian_today=date_ndays
-    # print(f"julian_today: {julian_today}")
-    # laads_client = LaadsClient()
-    # laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=[products_id], collection_id='5000', data_path=f'../data/data/VIIRS_NRT/5000/{products_id}/2022', julian_day=str(date_ndays))
-    # laads_client.download_files_to_local_based_on_filelist(date, products_id=[products_id], collection_id='5000', data_path=f'../data/data/VIIRS_NRT/5000/{products_id}/2022', julian_day=str(date_ndays))
+    date_ndays = (dt.datetime.strptime(date, '%Y-%m-%d') - dt.datetime.strptime(date[:4] + '-01-01', '%Y-%m-%d')).days + 1
+    julian_today=date_ndays
+    print(f"julian_today: {julian_today}")
+    laads_client = LaadsClient()
+    laads_client.query_filelist_with_date_range_and_area_of_interest(date, products_id=[products_id], collection_id='5000', data_path=f'../data/data/VIIRS_NRT/5000/{products_id}/2022', julian_day=str(date_ndays))
+    laads_client.download_files_to_local_based_on_filelist(date, products_id=[products_id], collection_id='5000', data_path=f'../data/data/VIIRS_NRT/5000/{products_id}/2022', julian_day=str(date_ndays))
 
     fileList = viirs_preprocessing_and_upload(dataPath)
     pprint(fileList)
@@ -348,7 +336,38 @@ if __name__ == "__main__":
     #     "VNP09GA_NRT_A2021200_h11v03_001",
     # ]
 
+    """ set property """
+    import time, subprocess
+    from datetime import datetime, timedelta
+
+    fileListCopy = fileList.copy()
+    imgCol_name = os.path.split(gs_dir)[-1]
+    while(len(fileListCopy) > 0):
+        print()
+        pprint(fileListCopy)
+        print("-------------------------------------------------------------------")
     
+        response = subprocess.getstatusoutput(f"earthengine ls {VIIRS_NRT_ImgCol}")
+        asset_list = response[1].replace("projects/earthengine-legacy/assets/", "").split("\n")
 
+        for filename in fileList:
+            asset_id = f"{VIIRS_NRT_ImgCol}/{filename}"  # VNP09GA_NRT_A2021198_h10v03_001
+            julian_day = eval(filename.split("_")[2][5:])
+            standard_date = datetime(year, 1, 1) + timedelta(days=julian_day)
+            standard_date = standard_date.strftime("%Y-%m-%d")
 
-# wget -e robots=off -m -np -R .html,.tmp -nH --cut-dirs=4 "https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/5000/VNP09_NRT/2022/243" --header "Authorization: Bearer cHV6aGFvX2FnYjpjSFY2YUdGdlFHdDBhQzV6WlE9PToxNjYxOTU1NTU5OjFmM2EyY2IwZWY4NWFkNTE5N2RiOGZiYjY2MzA4N2QxMjEwMTgyMjg" -P TARGET_DIRECTORY_ON_YOUR_FILE_SYSTEM
+            if asset_id in asset_list:
+                # set_image_property(asset_id, query_info)
+                os.system(f'earthengine asset set --time_start {standard_date} {asset_id}')
+                # os.system(f'earthengine asset set --index {standard_date.replace("-","_")} {asset_id}')
+                
+                try:
+                    fileListCopy.remove(filename)
+                    print(f"{asset_id} [set time_start!]")
+                except:
+                    print(f"{asset_id} [failed to remove!]")
+            else:
+                print(f"{asset_id} [Not Ready in GEE!]")
+
+        if(len(fileListCopy) > 0):
+            time.sleep(60) # wait?
