@@ -8,6 +8,8 @@ import earthpy as ep
 import xarray as xr
 import rioxarray as rxr
 
+# %%
+
 # # MODIS
 # rootDir = Path("C:\\eo4wildfire\\data\\MODIS_NRT")
 # inDir = rootDir / "61/MOD09GA/2022/214"
@@ -56,14 +58,18 @@ desired_bands = viirs_bands
 # print(str(inDir / f"{filename}.h5"))
 
 # %%
-url_ = "G:\PyProjects\sentinelhub-auto-update\outputs\MOD02HKM.A2022246.1015.061.2022246111842.NRT.hdf"
-url_MOD021KM = "G:\PyProjects\sentinelhub-auto-update\outputs\MOD021KM.A2022247.0025.061.2022247013902.NRT.hdf"
-MOD02HKM = rxr.open_rasterio(url_,
+datafolder = Path("G:\PyProjects\sentinelhub-auto-update\outputs")
+url_MOD02HKM = datafolder / "MOD02HKM.A2022246.1015.061.2022246111842.NRT.hdf"
+url_MOD021KM = datafolder / "MOD021KM.A2022247.0025.061.2022247013902.NRT.hdf"
+url_MOD02QKM = datafolder / "MOD02QKM.A2022248.1000.061.2022248110709.NRT.hdf"
+MOD02HKM = rxr.open_rasterio(str(url_MOD02HKM),
                         masked=False,
                         variable=[
+
                             "EV_500_RefSB",
                             "EV_250_Aggr500_RefSB"]
                 )#.squeeze()
+
 
 # %%
 MOD02HKM_ = MOD02HKM['EV_250_Aggr500_RefSB'][:1,].to_dataset()
@@ -81,10 +87,9 @@ MOD02HKM_ = MOD02HKM_.drop(labels=['EV_250_Aggr500_RefSB'])
 MOD02HKM_ = MOD02HKM_.assign_attrs(MOD02HKM.attrs).squeeze()
 
 # %%
-filename = "V1_MOD02HKM"
+filename = "V2_MOD02HKM"
 outDir.mkdir(exist_ok=True)
 MOD02HKM_.rio \
-    .write_crs("EPSG:4326").rio \
             .to_raster(outDir / f"{filename}.tif")
 
 # .reproject("EPSG:4326") \

@@ -134,7 +134,7 @@ if __name__ == "__main__":
         current_time =  datetime.now().strftime("%H:%M:%S")
         print(current_time)
 
-        if current_time[:2] == "14":
+        if current_time[:2] == "11":
             
             # time_split = current_time.split(":")
             # print(time_split)
@@ -149,7 +149,8 @@ if __name__ == "__main__":
             print(f"\n------------------> update time: {current_time} <-------------------")
             print(AF.aggregate_array("af_date").distinct().sort().getInfo()[-1])
 
-            time.sleep(30*60) # sleep 1h
+        else:
+            time.sleep(60*60) # sleep 1h
 
 
 
