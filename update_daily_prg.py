@@ -2,17 +2,18 @@ from tkinter import Scale
 import ee
 ee.Initialize()
 
+YEAR = 2023
 
-AF_SV_yr = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/SUOMI_VIIRS_C2_Global_Archived_2022")
-AF_J1_yr = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/J1_VIIRS_C2_Global_Archived_2022")
-AF_MOD_yr = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/MODIS_C6_1_Global_Archived_2022")
+AF_SV_yr = ee.FeatureCollection(f"users/omegazhangpzh/NRT_AF/SUOMI_VIIRS_C2_Global_Archived_{YEAR}")
+AF_J1_yr = ee.FeatureCollection(f"users/omegazhangpzh/NRT_AF/J1_VIIRS_C2_Global_Archived_{YEAR}")
+AF_MOD_yr = ee.FeatureCollection(f"users/omegazhangpzh/NRT_AF/MODIS_C6_1_Global_Archived_{YEAR}")
 
 AF_SV_7d = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/SUOMI_VIIRS_C2_Global_7d")
 AF_J1_7d = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/J1_VIIRS_C2_Global_7d")
 AF_MOD_7d = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/MODIS_C6_1_Global_7d")
 
 AF_DICT = {
-    'VIIRS': AF_SV_yr.merge(AF_J1_yr),
+    'VIIRS': AF_SV_yr, #.merge(AF_J1_yr),
     'MODIS': AF_MOD_yr
 }
     
@@ -84,9 +85,9 @@ if __name__ == "__main__":
         -101.67720193541574,59.58406726407946
     ])
 
-    start_date = "2021-06-01"
-    end_date = "2021-07-30"
+    start_date = f"{YEAR}-01-01"
+    end_date = f"{YEAR}-07-30"
 
     for source in ['VIIRS', 'MODIS']:
-        export_daily_progression(source, NA_roi, start_date, end_date, source+"_PRG_2022_NA")
-        export_daily_progression(source, EU_roi, start_date, end_date, source+"_PRG_2022_EU")
+        export_daily_progression(source, NA_roi, start_date, end_date, source + f"_PRG_{YEAR}_NA")
+        export_daily_progression(source, EU_roi, start_date, end_date, source + f"_PRG_{YEAR}_EU")

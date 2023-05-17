@@ -24,8 +24,8 @@ def download_and_upload(url, save_folder, bucket="sar4wildfire", asset_name=None
 
     # print(f"url: {url}")
     downloader = Downloader()
-    # downloader.download(url, save_folder)
-    # # downloader.un_zip(save_folder / f"{filename}.zip")
+    downloader.download(url, save_folder)
+    downloader.un_zip(save_folder / f"{filename}.zip")
 
     asset_id = f"users/omegazhangpzh/NRT_AF/{asset_name}"
     
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         # if (int(time_split[0]) % 3 == 0) and (int(time_split[1])==0) and (int(time_split[2])==0):
             
     # upadte_active_fire(period_list=['24h', '7d', '48h']) #  
-    upadte_active_fire_archived(code=226172 , year=2021)
+    upadte_active_fire_archived(code=351892 , year=2023)
 
     AF_SUOMI_VIIRS = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/SUOMI_VIIRS_C2_Global_24h")
     AF = AF_SUOMI_VIIRS.map(set_AF_date)

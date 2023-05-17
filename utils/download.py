@@ -55,7 +55,7 @@ class Downloader():
 
     def un_zip(self, src):
         save_folder = Path(os.path.split(src)[0])
-    
+        (save_folder / "unzipped").mkdir(exist_ok=True)
         unzip_folder = save_folder / "unzipped" / os.path.split(src)[-1][:-4]
 
         """ unzip zip file """
