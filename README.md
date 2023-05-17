@@ -5,10 +5,6 @@ This project is used to reduce the delay of VIIRS, Sentinel-1, and Sentinel-2 up
 # Config Environment
 ## 1. Install anaconda
 https://docs.anaconda.com/anaconda/install/index.html
-``` bash
-conda env create -f env1.yml
-conda env export -f environment.yml
-```
 
 ## 2. Install ESA SNAP Desktop Software (for Sentinel-2 and Sentinel-1 only)
 https://step.esa.int/main/download/snap-download/
@@ -51,6 +47,15 @@ python update_active_fire_recent7days.py
 ``` bash
 python update_active_fire_archived.py
 ```
+
+## update modis and viirs NRT data
+``` bash
+python update_modis_nrt.py
+```
+``` bash
+python update_viirs_nrt.py
+```
+
 ## update Sentinel-2 and Sentinel-1 from Sentinel Hub
 ### Solution 1: download and update through airflow like platform
 
@@ -101,17 +106,26 @@ config = "roi_url=inputs/S2_BC_ALB_fireCenter.geojson satellite=sentinel2 start_
 
 You could also create your own ROI in geojson in https://geojson.io/, save it into inputs folder.
 
-## check updated data in the wildfire minitor app:
+## check updated data in the wildfire monitor app:
 https://eo4wildfire.users.earthengine.app/view/wildfire-monitor-us
 
 
 ## Other (no need to follow)
-### export env (for export only)
+export env (for export only)
+``` bash
+conda env export -f environment.yml
 ```
+
+``` bash
 conda env export -f env.yml --no-builds
 ```
 
-### config python environment from yml
+create python environment from yml
+``` bash
+conda env create -f env1.yml
 ```
+
+config python environment from yml
+``` bash
 conda env update --file env.yml --prune
 ```
