@@ -54,7 +54,7 @@ def upadte_active_fire(period_list = ['24h', '7d']):
     firms = [
         "/data/active_fire/modis-c6.1/shapes/zips/MODIS_C6_1_Global_24h.zip",
         # "/data/active_fire/suomi-npp-viirs-c2/shapes/zips/SUOMI_VIIRS_C2_Global_24h.zip",
-        # "/data/active_fire/noaa-20-viirs-c2/shapes/zips/J1_VIIRS_C2_Global_24h.zip"
+        "/data/active_fire/noaa-20-viirs-c2/shapes/zips/J1_VIIRS_C2_Global_24h.zip"
     ]
 
     NRT_AF = subprocess.getstatusoutput("earthengine ls users/omegazhangpzh/NRT_AF/")
@@ -129,26 +129,28 @@ if __name__ == "__main__":
 
     from datetime import datetime
 
-    # while(True):
-    now = datetime.now()
-    current_time =  datetime.now().strftime("%H:%M:%S")
+    while(True):
+        now = datetime.now()
+        current_time =  datetime.now().strftime("%H:%M:%S")
+        print(current_time)
 
-    # if current_time == "07:00:00":
-        
-        # time_split = current_time.split(":")
-        # print(time_split)
-    
-        # if (int(time_split[0]) % 3 == 0) and (int(time_split[1])==0) and (int(time_split[2])==0):
+        if current_time[:2] == "11":
             
-    upadte_active_fire(period_list=['7d']) #  
+            # time_split = current_time.split(":")
+            # print(time_split)
+        
+            # if (int(time_split[0]) % 3 == 0) and (int(time_split[1])==0) and (int(time_split[2])==0):
+                
+            upadte_active_fire(period_list=['7d']) #  
 
-    AF_SUOMI_VIIRS = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/MODIS_C6_1_Global_7d")
-    AF = AF_SUOMI_VIIRS.map(set_AF_date)
+            AF_SUOMI_VIIRS = ee.FeatureCollection("users/omegazhangpzh/NRT_AF/MODIS_C6_1_Global_7d")
+            AF = AF_SUOMI_VIIRS.map(set_AF_date)
 
-    print(f"\n------------------> update time: {current_time} <-------------------")
-    print(AF.aggregate_array("af_date").distinct().sort().getInfo()[-1])
+            print(f"\n------------------> update time: {current_time} <-------------------")
+            print(AF.aggregate_array("af_date").distinct().sort().getInfo()[-1])
 
-    # time.sleep(60*60) # sleep 1h
+        else:
+            time.sleep(60*60) # sleep 1h
 
 
 

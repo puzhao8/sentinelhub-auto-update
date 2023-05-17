@@ -152,6 +152,7 @@ def upadte_active_fire_archived(code=215922, year=2021):
 
     for i in range(len(firms[-1:])): # -------------------------------------
         url = nasa_website + firms[i]
+        print(url)
 
         filename, task_id = download_and_upload(url, save_folder, bucket="sar4wildfire", asset_name=asset_names[i])
         task_dict.update({filename: {'id': task_id}})
